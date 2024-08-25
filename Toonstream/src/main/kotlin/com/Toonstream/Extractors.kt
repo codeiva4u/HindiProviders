@@ -16,10 +16,17 @@ import com.lagradost.cloudstream3.utils.ExtractorLink
 import com.lagradost.cloudstream3.utils.INFER_TYPE
 import com.lagradost.cloudstream3.utils.Qualities
 import com.lagradost.cloudstream3.utils.getQualityFromName
+com.lagradost.cloudstream3.extractors.Chillx
 
 class StreamSB8 : StreamSB() {
     override var mainUrl = "https://streamsb.net"
 }
+
+class Vidstreamxyz : Chillx() {
+    override val name = "Vidstream"
+        override val mainUrl = "https://vidstreaming.xyz"
+        }
+
 
 open class Vidstreaming : ExtractorApi() {
     override var name = "Vidstreaming"
