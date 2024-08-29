@@ -9,6 +9,8 @@ import com.lagradost.cloudstream3.utils.Qualities
 import com.lagradost.cloudstream3.utils.loadExtractor
 import com.lagradost.cloudstream3.SubtitleFile
 import com.lagradost.cloudstream3.network.WebViewResolver
+import com.lagradost.cloudstream3.extractors.VidHidePro
+import android.util.Log
 
 class MultimoviesAIO: StreamWishExtractor() {
     override var name = "Multimovies Cloud AIO"
@@ -34,18 +36,32 @@ class server2 : VidhideExtractor() {
     override var requiresReferer = true
 }
 
+class Asnwish : StreamWishExtractor() {
+    override val name = "Streanwish Asn"
+    override val mainUrl = "https://asnwish.com"
+    override val requiresReferer = true
+}
+
+class CdnwishCom : StreamWishExtractor() {
+    override val name = "Cdnwish"
+    override val mainUrl = "https://cdnwish.com"
+    override val requiresReferer = true
+}
+
 class GDMirrorbot : ExtractorApi() {
     override var name = "GDMirrorbot"
     override var mainUrl = "https://gdmirrorbot.nl"
-    override val requiresReferer = false
+    override val requiresReferer = true
     override suspend fun getUrl(
         url: String,
         referer: String?,
         subtitleCallback: (SubtitleFile) -> Unit,
         callback: (ExtractorLink) -> Unit) {
+        Log.d("Phisher url","$url")
         app.get(url).document.select("ul#videoLinks li").map {
             val link=it.attr("data-link")
-            loadExtractor(link,subtitleCallback, callback)
+            Log.d("Phisher url","$link")
+            loadExtractor(link,"https://multimovies.sbs",subtitleCallback, callback)
         }
     }
 }
