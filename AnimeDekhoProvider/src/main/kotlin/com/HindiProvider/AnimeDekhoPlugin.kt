@@ -8,7 +8,8 @@ import android.content.Context
 class AnimeDekhoPlugin: Plugin() {
     override fun load(context: Context) {
         registerMainAPI(AnimeDekhoProvider())
-        //registerMainAPI(AnimeDekho2Provider())
+        registerMainAPI(OnepaceProvider())
+        registerMainAPI(HindiSubAnime())
         registerExtractorAPI(Streamruby())
         registerExtractorAPI(VidStream())
         registerExtractorAPI(Vidmolynet())

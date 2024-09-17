@@ -24,7 +24,7 @@ import com.HindiProviders.StreamPlayExtractor.invokeFDMovies
 import com.HindiProviders.StreamPlayExtractor.invokeFilmxy
 import com.HindiProviders.StreamPlayExtractor.invokeFlixon
 import com.HindiProviders.StreamPlayExtractor.invokeGhostx
-import com.HindiProviders.StreamPlayExtractor.invokeGoku
+//import com.HindiProviders.StreamPlayExtractor.invokeGoku
 import com.HindiProviders.StreamPlayExtractor.invokeHdmovies4u
 import com.HindiProviders.StreamPlayExtractor.invokeKimcartoon
 import com.HindiProviders.StreamPlayExtractor.invokeKisskh
@@ -55,6 +55,7 @@ import com.HindiProviders.StreamPlayExtractor.invokeZshow
 import com.HindiProviders.StreamPlayExtractor.invokekissasian
 import com.HindiProviders.StreamPlayExtractor.invokePlaydesi
 import com.HindiProviders.StreamPlayExtractor.invokeBollyflix
+import com.HindiProviders.StreamPlayExtractor.invokemovies4u
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.lagradost.cloudstream3.Actor
 import com.lagradost.cloudstream3.ActorData
@@ -140,7 +141,7 @@ open class StreamPlay : TmdbProvider() {
         const val cinemaTvAPI = BuildConfig.CINEMATV_API
         const val nineTvAPI = "https://moviesapi.club"
         const val nowTvAPI = "https://myfilestorage.xyz"
-        const val gokuAPI = "https://goku.sx"
+        //const val gokuAPI = "https://goku.sx"
         const val zshowAPI = BuildConfig.ZSHOW_API
         const val ridomoviesAPI = "https://ridomovies.tv"
         const val emoviesAPI = "https://emovies.si"
@@ -161,7 +162,7 @@ open class StreamPlay : TmdbProvider() {
         const val fdMoviesAPI = "https://freedrivemovie.com"
         const val uhdmoviesAPI = "https://uhdmovies.dad"
         const val topmoviesAPI = "https://topmovies.dad"
-        const val MoviesmodAPI= "https://moviesmod.win"
+        const val MoviesmodAPI= "https://moviesmod.fit"
         const val hdmovies4uAPI = "https://hdmovies4u.boston"
         const val vegaMoviesAPI = "https://vegamovies.pet"
         const val dotmoviesAPI = "https://luxmovies.lol"
@@ -169,7 +170,8 @@ open class StreamPlay : TmdbProvider() {
         const val dahmerMoviesAPI="https://worker-square-heart-580a.uieafpvtgl.workers.dev"
         const val MovieDrive_API="https://moviesdrive.world"
         const val Asiandrama_API=BuildConfig.AsianDrama_API
-        const val bollyflixAPI = "https://bollyflix.wales"
+        const val bollyflixAPI = "https://bollyflix.beer"
+        const val movies4u = "https://movies4u.poker"
         fun getType(t: String?): TvType {
             return when (t) {
                 "movie" -> TvType.Movie
@@ -427,6 +429,7 @@ open class StreamPlay : TmdbProvider() {
                         callback
                     )
                 },
+            /*
                 {
                    invokeGoku(
                        res.title,
@@ -438,6 +441,7 @@ open class StreamPlay : TmdbProvider() {
                         callback
                    )
                 },
+             */
                 {
                     invokeVidSrc(res.id, res.season, res.episode, subtitleCallback,callback)
                 },
@@ -604,7 +608,18 @@ open class StreamPlay : TmdbProvider() {
                     callback
                 )
             },
-    {
+            {
+                if (!res.isAnime) invokemovies4u(
+                    res.title,
+                    res.year,
+                    res.season,
+                    res.lastSeason,
+                    res.episode,
+                    subtitleCallback,
+                    callback
+                )
+            },
+        {
         if (!res.isAnime) invokeFDMovies(res.title, res.season, res.episode, callback)
     },
     {
@@ -729,7 +744,7 @@ open class StreamPlay : TmdbProvider() {
         )
     },
     {
-        if (!res.isAnime && res.isBollywood) invokeDotmovies(
+        if (!res.isAnime) invokeDotmovies(
             res.title,
             res.year,
             res.season,

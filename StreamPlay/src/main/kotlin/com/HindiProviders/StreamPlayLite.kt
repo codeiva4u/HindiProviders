@@ -10,7 +10,6 @@ import com.HindiProviders.StreamPlayExtractor.invokeDramaday
 import com.HindiProviders.StreamPlayExtractor.invokeDreamfilm
 import com.HindiProviders.StreamPlayExtractor.invokeFilmxy
 import com.HindiProviders.StreamPlayExtractor.invokeFlixon
-import com.HindiProviders.StreamPlayExtractor.invokeGoku
 import com.HindiProviders.StreamPlayExtractor.invokeKimcartoon
 import com.HindiProviders.StreamPlayExtractor.invokeKisskh
 import com.HindiProviders.StreamPlayExtractor.invokeLing
@@ -61,7 +60,6 @@ class StreamPlayLite : StreamPlay() {
                 invokeBollyflix(res.title,res.year,res.season,res.lastSeason,res.episode,subtitleCallback,callback)
                 invokeMoflix(res.id, res.season, res.episode, callback)
                 invokeWatchsomuch(res.imdbId,res.season,res.episode,subtitleCallback)
-                //invokeGoku(res.title,res.year,res.season,res.lastSeason,res.episode,subtitleCallback,callback)
                 invokeMoviesdrive(res.title,res.season,res.episode,res.year,subtitleCallback,callback)
                 invokeTopMovies(res.title,res.year,res.season,res.lastSeason,res.episode,subtitleCallback,callback)
             },
@@ -321,16 +319,6 @@ class StreamPlayLite : StreamPlay() {
             }
 
              */
-            {
-                if (!res.isAnime) invokeMoviesdrive(
-                    res.title,
-                    res.season,
-                    res.episode,
-                    res.year,
-                    subtitleCallback,
-                    callback
-                )
-            },
             {
                 if (!res.isAnime) invokeVegamovies(
                     res.title,
