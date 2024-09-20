@@ -1,12 +1,12 @@
 package com.HindiProviders
 
 //import android.util.Log
-import android.util.Log
 import com.lagradost.cloudstream3.extractors.Filesim
 import com.lagradost.cloudstream3.extractors.GMPlayer
 import com.lagradost.cloudstream3.extractors.StreamSB
 import com.lagradost.cloudstream3.extractors.Voe
 import com.fasterxml.jackson.annotation.JsonProperty
+import com.lagradost.api.Log
 import com.lagradost.cloudstream3.APIHolder.getCaptchaToken
 import com.lagradost.cloudstream3.SubtitleFile
 import com.lagradost.cloudstream3.amap
@@ -20,14 +20,14 @@ import com.lagradost.cloudstream3.utils.*
 import java.math.BigInteger
 import java.security.MessageDigest
 import com.lagradost.cloudstream3.extractors.Chillx
-import com.lagradost.cloudstream3.network.WebViewResolver
+import com.lagradost.cloudstream3.extractors.MixDrop
+import com.lagradost.cloudstream3.extractors.StreamWishExtractor
 import com.lagradost.cloudstream3.utils.AppUtils
 import com.lagradost.cloudstream3.utils.ExtractorApi
 import com.lagradost.cloudstream3.utils.ExtractorLink
 import com.lagradost.cloudstream3.utils.M3u8Helper
 import okhttp3.FormBody
 import org.json.JSONObject
-import java.net.URI
 
 open class Playm4u : ExtractorApi() {
     override val name = "Playm4u"
@@ -209,6 +209,11 @@ class VCloud : ExtractorApi() {
         subtitleCallback: (SubtitleFile) -> Unit,
         callback: (ExtractorLink) -> Unit
     ) {
+        var url=url
+        if (url.contains("api/index.php"))
+        {
+            url=app.get(url).document.selectFirst("div.main h4 a")?.attr("href") ?:""
+        }
         val doc = app.get(url).document
         val scriptTag = doc.selectFirst("script:containsData(url)")?.toString() ?:""
         val urlValue = Regex("var url = '([^']*)'").find(scriptTag) ?. groupValues ?. get(1) ?: ""
@@ -219,6 +224,7 @@ class VCloud : ExtractorApi() {
         val header = document.selectFirst("div.card-header") ?. text()
         div?.select("a")?.apmap {
             val link = it.attr("href")
+            Log.d("Phisher V",link)
             if (link.contains("pixeldra")) {
                 callback.invoke(
                     ExtractorLink(
@@ -251,7 +257,19 @@ class VCloud : ExtractorApi() {
                         getIndexQuality(header),
                     )
                 )
-            } else {
+            } else if (link.contains(".hubcdn.xyz"))
+            {
+                callback.invoke(
+                    ExtractorLink(
+                        "V-Cloud",
+                        "V-Cloud $size",
+                        link,
+                        "",
+                        getIndexQuality(header),
+                    )
+                )
+            }
+            else{
                 loadExtractor(link, subtitleCallback, callback)
             }
         }
@@ -489,45 +507,10 @@ class AllinoneDownloader : Filesim() {
     override var mainUrl = "https://allinonedownloader.fun"
 }
 
-open class StreamWishExtractor : ExtractorApi() {
-    override var name = "StreamWish"
-    override var mainUrl = "https://streamwish.to"
-    override val requiresReferer = true
-
-    override suspend fun getUrl(url: String, referer: String?): List<ExtractorLink>? {
-        val response = app.get(
-            url, referer = referer ?: "$mainUrl/", interceptor = WebViewResolver(
-                Regex("""master\.m3u8""")
-            )
-        )
-        val sources = mutableListOf<ExtractorLink>()
-        if (response.url.contains("m3u8"))
-            sources.add(
-                ExtractorLink(
-                    source = name,
-                    name = name,
-                    url = response.url,
-                    referer = referer ?: "$mainUrl/",
-                    quality = Qualities.P1080.value,
-                    isM3u8 = true
-                )
-            )
-        return sources
-    }
-}
-
-
-
-
 class Alions : Ridoo() {
     override val name = "Alions"
     override var mainUrl = "https://alions.pro"
     override val defaulQuality = Qualities.Unknown.value
-}
-
-class Streamwish : Filesim() {
-    override val name = "Streamwish"
-    override var mainUrl = "https://streamwish.to"
 }
 
 class UqloadsXyz : Filesim() {
@@ -583,8 +566,7 @@ class Embedwish : Filesim() {
     override var mainUrl = "https://embedwish.com"
 }
 
-class dwish : Filesim() {
-    override val name = "Dwish"
+class dwish : StreamWishExtractor() {
     override var mainUrl = "https://dwish.pro"
 }
 
@@ -598,6 +580,10 @@ class Animezia : VidhideExtractor() {
     override var mainUrl = "https://animezia.cloud"
 }
 
+class MixDropSi : MixDrop(){
+    override var mainUrl = "https://mixdrop.si"
+}
+
 class Servertwo : VidhideExtractor() {
     override var name = "MultiMovies Vidhide"
     override var mainUrl = "https://server2.shop"
@@ -608,7 +594,7 @@ class Filelion : Filesim() {
     override var mainUrl = "https://filelions.to"
 }
 
-class MultimoviesAIO: com.lagradost.cloudstream3.extractors.StreamWishExtractor() {
+class MultimoviesAIO: StreamWishExtractor() {
     override var name = "Multimovies Cloud AIO"
     override var mainUrl = "https://allinonedownloader.fun"
 }
@@ -758,18 +744,9 @@ open class Mdrive : ExtractorApi() {
     }
 }
 
-suspend fun Unblockedlinks(url: String): String? {
+suspend fun Unblockedlinks(url: String): String {
     val driveLink = bypassHrefli(url) ?:""
     return driveLink
-}
-
-suspend fun Extractanimeflixlinks(url: String): String {
-    val driveReq = app.get(url)
-    val driveRes = driveReq.document
-    val link = driveRes.selectFirst("a.button-24")?.attr("href") ?:""
-    val truelink = app.get(link).text.substringAfter("replace(\"").substringBefore("\"")
-    val finallink = app.get("https://driveleech.org$truelink").document.selectFirst("a.btn.btn-danger")?.attr("href") ?:""
-    return finallink
 }
 
 open class Modflix : ExtractorApi() {
@@ -777,6 +754,7 @@ open class Modflix : ExtractorApi() {
     override val mainUrl: String = "https://video-seed.xyz"
     override val requiresReferer = true
 
+    @Suppress("PARAMETER_NAME_CHANGED_ON_OVERRIDE")
     override suspend fun getUrl(
         finallink: String,
         quality: String?,
@@ -812,6 +790,27 @@ open class Modflix : ExtractorApi() {
     }
 }
 
+
+
+open class Asianbxkiun : ExtractorApi() {
+    override val name: String = "Asianbxkiun"
+    override val mainUrl: String = "https://asianbxkiun.pro"
+    override val requiresReferer = false
+
+    override suspend fun getUrl(
+        url: String,
+        referer: String?,
+        subtitleCallback: (SubtitleFile) -> Unit,
+        callback: (ExtractorLink) -> Unit
+    ) {
+       app.get(url).document.select("#list-server-more ul li").map {
+           val link=it.attr("data-video")
+           loadExtractor(link,subtitleCallback, callback)
+       }
+    }
+}
+
+
 class furher : Filesim() {
     override val name: String = "AZSeries"
     override var mainUrl = "https://furher.in"
@@ -819,11 +818,6 @@ class furher : Filesim() {
 class fastdlserver : GDFlix() {
     override var mainUrl = "https://fastdlserver.online"
 }
-
-class Streamhide : StreamWishExtractor() {
-    override var mainUrl = "https://streamwish.to"
-}
-
 
 class GDFlix1 : GDFlix() {
     override val mainUrl: String = "https://new3.gdflix.cfd"
@@ -848,12 +842,6 @@ open class GDFlix : ExtractorApi() {
         val tagdoc= app.get(url).text
         val tags ="""\b\d{3,4}p\b\s(.*?)\[""".toRegex().find(tagdoc) ?. groupValues ?. get(1) ?. trim() ?:""
         return tags
-    }
-
-    private fun getBaseUrl(url: String): String {
-        return URI(url).let {
-            "${it.scheme}://${it.host}"
-        }
     }
 
     override suspend fun getUrl(
@@ -896,7 +884,7 @@ open class GDFlix : ExtractorApi() {
                     val cookiesSSID = indexbotresponse.cookies["PHPSESSID"]
                     val indexbotDoc = indexbotresponse.document
                     val token = Regex("""formData\.append\('token', '([a-f0-9]+)'\)""").find(indexbotDoc.toString()) ?. groupValues ?. get(1) ?: "token"
-                    val postId = Regex("""fetch\('\/download\?id=([a-zA-Z0-9\/+]+)'""").find(indexbotDoc.toString()) ?. groupValues ?. get(1) ?: "postId"
+                    val postId = Regex("""fetch\('/download\?id=([a-zA-Z0-9/+]+)'""").find(indexbotDoc.toString()) ?. groupValues ?. get(1) ?: "postId"
 
                     val requestBody = FormBody.Builder()
                         .add("token", token)
@@ -947,16 +935,49 @@ open class GDFlix : ExtractorApi() {
                     )
                 )
             }
-            else
-            {
-
-            }
         }
     }
 }
 
 class HubCloudClub : HubCloud() {
     override var mainUrl = "https://hubcloud.club"
+}
+
+class HubCloudlol : HubCloud() {
+    override var mainUrl = "https://hubcloud.lol"
+}
+
+class PixelDrain : ExtractorApi() {
+    override val name            = "PixelDrain"
+    override val mainUrl         = "https://pixeldrain.com"
+    override val requiresReferer = true
+
+    override suspend fun getUrl(url: String, referer: String?, subtitleCallback: (SubtitleFile) -> Unit, callback: (ExtractorLink) -> Unit) {
+        val mId = Regex("/u/(.*)").find(url)?.groupValues?.get(1)
+        if (mId.isNullOrEmpty())
+        {
+            callback.invoke(
+                ExtractorLink(
+                    this.name,
+                    this.name,
+                    url,
+                    url,
+                    Qualities.Unknown.value,
+                )
+            )
+        }
+        else {
+            callback.invoke(
+                ExtractorLink(
+                    this.name,
+                    this.name,
+                    "$mainUrl/api/file/${mId}?download",
+                    url,
+                    Qualities.Unknown.value,
+                )
+            )
+        }
+    }
 }
 
 open class HubCloud : ExtractorApi() {
@@ -973,7 +994,7 @@ open class HubCloud : ExtractorApi() {
         val doc = app.get(url).text
         val newLink = doc.substringAfter("url=").substringBefore("\"")
         val newDoc = app.get(newLink).document
-        var gamerLink = ""
+        val gamerLink: String
 
         if(newLink.contains("drive")) {
             val scriptTag = newDoc.selectFirst("script:containsData(url)")!!.toString()
@@ -988,8 +1009,8 @@ open class HubCloud : ExtractorApi() {
 
         val size = document.selectFirst("i#size") ?. text()
         val div = document.selectFirst("div.card-body")
-        val header = document.selectFirst("div.card-header") ?. text()
-        div.select("a").apmap {
+        val header = document.selectFirst("div.card-header")?.text()
+        div?.select("a")?.apmap {
             val link = it.attr("href")
             val text = it.text()
             if (link.contains("pixeldra")) {
@@ -1036,7 +1057,7 @@ open class HubCloud : ExtractorApi() {
 
     private fun getIndexQuality(str: String?): Int {
         return Regex("(\\d{3,4})[pP]").find(str ?: "") ?. groupValues ?. getOrNull(1) ?. toIntOrNull()
-            ?: Qualities.Unknown.value
+            ?: Qualities.P2160.value
     }
 
 }
@@ -1064,6 +1085,13 @@ open class Driveseed : ExtractorApi() {
         return links
     }
 
+    private suspend fun CFType2(url: String): List<String> {
+        val cfWorkersLink = url.replace("/file", "/wfile") + "?type=2"
+        val document = app.get(cfWorkersLink).document
+        val links = document.select("a.btn-success").map { it.attr("href") }
+        return links
+    }
+
     private suspend fun resumeCloudLink(url: String): String? {
         val resumeCloudUrl = mainUrl + url
         val document = app.get(resumeCloudUrl).document
@@ -1077,7 +1105,7 @@ open class Driveseed : ExtractorApi() {
         val resumeBotDoc = resumeBotResponse.document.toString()
         val ssid = resumeBotResponse.cookies["PHPSESSID"]
         val resumeBotToken = Regex("formData\\.append\\('token', '([a-f0-9]+)'\\)").find(resumeBotDoc)?.groups?.get(1)?.value
-        val resumeBotPath = Regex("fetch\\('/download\\?id=([a-zA-Z0-9/\\+]+)'").find(resumeBotDoc)?.groups?.get(1)?.value
+        val resumeBotPath = Regex("fetch\\('/download\\?id=([a-zA-Z0-9/+]+)'").find(resumeBotDoc)?.groups?.get(1)?.value
         val resumeBotBaseUrl = url.split("/download")[0]
         val requestBody = FormBody.Builder()
             .addEncoded("token", "$resumeBotToken")
@@ -1087,7 +1115,7 @@ open class Driveseed : ExtractorApi() {
             requestBody = requestBody,
             headers = mapOf(
                 "Accept" to "*/*",
-                "Origin" to "$resumeBotBaseUrl",
+                "Origin" to resumeBotBaseUrl,
                 "Sec-Fetch-Site" to "same-origin"
             ),
             cookies = mapOf("PHPSESSID" to "$ssid"),
@@ -1098,7 +1126,7 @@ open class Driveseed : ExtractorApi() {
         return link
     }
 
-    private suspend fun instantLink(finallink: String): String? {
+    private suspend fun instantLink(finallink: String): String {
         val url = if(finallink.contains("video-leech")) "video-leech.xyz" else "video-seed.xyz"
         val token = finallink.substringAfter("https://$url/?url=")
         val downloadlink = app.post(
@@ -1108,7 +1136,7 @@ open class Driveseed : ExtractorApi() {
             ),
             referer = finallink,
             headers = mapOf(
-                "x-token" to "$url",
+                "x-token" to url,
                 "User-Agent" to "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:125.0) Gecko/20100101 Firefox/125.0"
             )
         )
@@ -1121,6 +1149,7 @@ open class Driveseed : ExtractorApi() {
     }
 
 
+    @Suppress("SENSELESS_COMPARISON")
     override suspend fun getUrl(
         url: String,
         referer: String?,
@@ -1139,8 +1168,8 @@ open class Driveseed : ExtractorApi() {
                 if (streamUrl != null) {
                     callback.invoke(
                         ExtractorLink(
-                            "ResumeCloud",
-                            "ResumeCloud",
+                            "Driveseed ResumeCloud",
+                            "Driveseed ResumeCloud",
                             streamUrl.toString(),
                             "",
                             quality
@@ -1150,12 +1179,12 @@ open class Driveseed : ExtractorApi() {
             }
             else if(text.contains("Instant Download")) {
                 val streamUrl = instantLink(link)
-                if (streamUrl != null) {
+                if (streamUrl.isNotEmpty()) {
                     callback.invoke(
                         ExtractorLink(
-                            "Instant(Download)",
-                            "Instant(Download)",
-                            streamUrl.toString(),
+                            "Driveseed Instant(Download)",
+                            "Driveseed Instant(Download)",
+                            streamUrl,
                             "",
                             quality
                         )
@@ -1167,8 +1196,8 @@ open class Driveseed : ExtractorApi() {
                 if (streamUrl != null) {
                     callback.invoke(
                         ExtractorLink(
-                            "ResumeBot",
-                            "ResumeBot(VLC)",
+                            "Driveseed ResumeBot",
+                            "Driveseed ResumeBot(VLC)",
                             streamUrl.toString(),
                             "",
                             quality
@@ -1178,13 +1207,27 @@ open class Driveseed : ExtractorApi() {
             }
             else if(text.contains("Direct Links")) {
                 val cfType1 = CFType1(url)
+                val cfType2 = CFType2(url)
                 if (cfType1.isNotEmpty()) {
-                    cfType1.forEach {
+                    cfType1.forEach { href ->
                         callback.invoke(
                             ExtractorLink(
-                                "CF Type1",
-                                "CF Type1",
-                                it.toString(),
+                                "Driveseed CF Type1",
+                                "Driveseed CF Type1",
+                                href,
+                                "",
+                                quality
+                            )
+                        )
+                    }
+                }
+                if (cfType2.isNotEmpty()) {
+                    cfType2.forEach { href ->
+                        callback.invoke(
+                            ExtractorLink(
+                                "Driveseed CF Type2",
+                                "Driveseed CF Type2",
+                                href,
                                 "",
                                 quality
                             )

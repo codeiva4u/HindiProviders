@@ -1,11 +1,12 @@
 // use an integer for version numbers
-version = 1
+version = 2
 
 
 cloudstream {
     // All of these properties are optional, you can safely remove them
-    description = "Tooniboy Multi Language"
-    language    = "hi"
+
+    description = "Tennistream"
+    language    = "en"
     authors = listOf("HindiProviders")
 
     /**
@@ -15,11 +16,12 @@ cloudstream {
     * 2: Slow
     * 3: Beta only
     * */
-    status = 0 // will be 3 if unspecified
+    status = 1 // will be 3 if unspecified
 
     // List of video source types. Users are able to filter for extensions in a given category.
     // You can find a list of avaliable types here:
     // https://recloudstream.github.io/cloudstream/html/app/com.lagradost.cloudstream3/-tv-type/index.html
-    tvTypes = listOf("Movie,Anime,Cartoon")
-    iconUrl="https://www.google.com/s2/favicons?domain=tooniboy.com&sz=%size%"
+    tvTypes = listOf("Live")
+
+    iconUrl="https://www.google.com/s2/favicons?domain=tennistream.com&sz=%size%"
 }

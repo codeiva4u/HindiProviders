@@ -8,8 +8,9 @@ import com.lagradost.cloudstream3.extractors.FileMoon
 import com.lagradost.cloudstream3.extractors.Gofile
 import com.lagradost.cloudstream3.extractors.MixDrop
 import com.lagradost.cloudstream3.extractors.Moviesapi
-import com.lagradost.cloudstream3.extractors.PixelDrain
+import com.lagradost.cloudstream3.extractors.Mp4Upload
 import com.lagradost.cloudstream3.extractors.StreamTape
+import com.lagradost.cloudstream3.extractors.StreamWishExtractor
 import com.lagradost.cloudstream3.extractors.VidHidePro6
 import com.lagradost.cloudstream3.extractors.VidSrcExtractor
 import com.lagradost.cloudstream3.extractors.Vidmolyme
@@ -36,10 +37,11 @@ class StreamPlayPlugin: Plugin() {
         registerExtractorAPI(Bestx())
         registerExtractorAPI(Snolaxstream())
         registerExtractorAPI(Pixeldra())
+        registerExtractorAPI(Mp4Upload())
         registerExtractorAPI(Graceaddresscommunity())
         registerExtractorAPI(M4ufree())
         registerExtractorAPI(Streamruby())
-        registerExtractorAPI(Streamwish())
+        registerExtractorAPI(StreamWishExtractor())
         registerExtractorAPI(Filelion())
         registerExtractorAPI(DoodYtExtractor())
         registerExtractorAPI(dlions())
@@ -74,17 +76,20 @@ class StreamPlayPlugin: Plugin() {
         registerExtractorAPI(Sethniceletter())
         registerExtractorAPI(GDFlix())
         registerExtractorAPI(fastdlserver())
+        registerExtractorAPI(Asianbxkiun())
         registerExtractorAPI(GDFlix1())
         registerExtractorAPI(GDFlix2())
         registerExtractorAPI(furher())
-        registerExtractorAPI(Streamhide())
         registerExtractorAPI(VidSrcExtractor())
         registerExtractorAPI(Servertwo())
         registerExtractorAPI(MultimoviesAIO())
         registerExtractorAPI(HubCloud())
         registerExtractorAPI(HubCloudClub())
+        registerExtractorAPI(HubCloudlol())
         registerExtractorAPI(Driveseed())
         registerExtractorAPI(Driveleech())
         registerExtractorAPI(VidHidePro6())
+        registerExtractorAPI(MixDropSi())
+
     }
 }

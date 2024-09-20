@@ -158,16 +158,16 @@ open class StreamPlay : TmdbProvider() {
         const val moflixAPI = "https://moflix-stream.xyz"
         const val zoechipAPI = "https://www1.zoechip.to"
 //        const val nepuAPI = "https://nepu.to"
-        const val DramacoolAPI = "https://dramacool.city"
+        const val DramacoolAPI = "https://watchasia.to"
         const val fdMoviesAPI = "https://freedrivemovie.com"
         const val uhdmoviesAPI = "https://uhdmovies.mov"
         const val topmoviesAPI = "https://topmovies.mov"
         const val MoviesmodAPI= "https://moviesmod.fit"
         const val hdmovies4uAPI = "https://hdmovies4u.boston"
-        const val vegaMoviesAPI = "https://vegamovies.pet"
+        const val vegaMoviesAPI = "https://vegamovies.fans"
         const val dotmoviesAPI = "https://luxmovies.lol"
         const val tvMoviesAPI = "https://www.tvseriesnmovies.com"
-        const val dahmerMoviesAPI="https://worker-square-heart-580a.uieafpvtgl.workers.dev"
+        const val dahmerMoviesAPI="https://a.datadiff.us.kg"
         const val MovieDrive_API="https://moviesdrive.world"
         const val Asiandrama_API=BuildConfig.AsianDrama_API
         const val bollyflixAPI = "https://bollyflix.beer"
@@ -343,7 +343,10 @@ open class StreamPlay : TmdbProvider() {
                     this.backgroundPosterUrl = bgPoster
                     this.year = year
                     this.plot = res.overview
-                    this.tags = keywords.takeIf { !it.isNullOrEmpty() } ?: genres
+                    this.tags = keywords
+                        ?.map { word -> word.replaceFirstChar { it.titlecase() } }
+                        ?.takeIf { it.isNotEmpty() }
+                        ?: genres
                     this.rating = rating
                     this.showStatus = getStatus(res.status)
                     this.recommendations = recommendations
@@ -359,7 +362,11 @@ open class StreamPlay : TmdbProvider() {
                     this.backgroundPosterUrl = bgPoster
                     this.year = year
                     this.plot = res.overview
-                    this.tags = keywords.takeIf { !it.isNullOrEmpty() } ?: genres
+                    this.tags = keywords
+                        ?.map { word -> word.replaceFirstChar { it.titlecase() } }
+                        ?.takeIf { it.isNotEmpty() }
+                        ?: genres
+
                     this.rating = rating
                     this.showStatus = getStatus(res.status)
                     this.recommendations = recommendations
@@ -397,7 +404,11 @@ open class StreamPlay : TmdbProvider() {
                 this.year = year
                 this.plot = res.overview
                 this.duration = res.runtime
-                this.tags = keywords.takeIf { !it.isNullOrEmpty() } ?: genres
+                this.tags = keywords
+                    ?.map { word -> word.replaceFirstChar { it.titlecase() } }
+                    ?.takeIf { it.isNotEmpty() }
+                    ?: genres
+
                 this.rating = rating
                 this.recommendations = recommendations
                 this.actors = actors
@@ -588,7 +599,7 @@ open class StreamPlay : TmdbProvider() {
                     )
                 },
                 {
-                if (res.isAnime && !res.isBollywood) invokeMoviesmod(
+                if (!res.isAnime && !res.isBollywood) invokeMoviesmod(
                     res.title,
                     res.year,
                     res.season,
@@ -719,7 +730,6 @@ open class StreamPlay : TmdbProvider() {
         res.imdbId,
         res.season,
         res.episode,
-        subtitleCallback,
         callback
         )
     },
