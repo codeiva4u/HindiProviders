@@ -1,12 +1,12 @@
-// use an integer for version numbers
-version = 4
+version = 1
 
 
 cloudstream {
+    language = "en"
     // All of these properties are optional, you can safely remove them
-    language = "hi"
-    description = "IPTV Player"
-    authors = listOf("HindiProviders")
+
+    description = "One Pace"
+    authors = listOf("KillerDogeEmpire,HindiProvider")
 
     /**
      * Status int as the following:
@@ -17,8 +17,7 @@ cloudstream {
      * */
     status = 1 // will be 3 if unspecified
     tvTypes = listOf(
-        "Live",
+        "Anime"
     )
-
-    iconUrl = "https://www.google.com/s2/favicons?domain=github.com&sz=%size%"
+    iconUrl = "https://raw.githubusercontent.com/Rowdy-Avocado/Rowdycado-Extensions/master/logos/onepace.png"
 }

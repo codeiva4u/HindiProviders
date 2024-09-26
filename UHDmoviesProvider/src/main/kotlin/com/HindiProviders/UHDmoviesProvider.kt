@@ -116,14 +116,17 @@ class UHDmoviesProvider : MainAPI() { // all providers must be an instance of Ma
         val type = if (tvTags.contains("Season")) TvType.TvSeries else TvType.Movie
         return if (type == TvType.TvSeries) {
             val episodes = mutableListOf<Episode>()
-            val pTags = doc.select("p:has(a:contains(Episode)), div:has(a:contains(Episode))")
-            //Log.d("Phisher UHD", pTags.toString())
+            var pTags = doc.select("p:has(a:contains(Episode))")
+            if (pTags.isEmpty())
+            {
+                pTags = doc.select("div:has(a:contains(Episode))")
+            }
             val seasonList = mutableListOf<Pair<String, Int>>()
             var season = 1
             pTags.mapNotNull { pTag ->
                 val prevPtag = pTag.previousElementSibling()
                 val details = prevPtag ?. text() ?: ""
-                val realSeason = Regex("""(?:Season |S)(\d+)""").find(details) ?. groupValues
+                val realSeason = Regex("""(?:Season |S0)(\d+)""").find(details) ?. groupValues
                     ?. get(1) ?: ""
                 val qualityRegex = """(1080p|720p|480p|2160p|4K|[0-9]*0p)""".toRegex(RegexOption.IGNORE_CASE)
                 val quality = qualityRegex.find(details) ?. groupValues ?. get(1) ?: ""
@@ -136,6 +139,7 @@ class UHDmoviesProvider : MainAPI() { // all providers must be an instance of Ma
                     seasonList.add(details to season)
                 }
                 val aTags = pTag.select("a:contains(Episode)")
+                Log.d("Phisher UHD", aTags.toString())
                 aTags.mapNotNull { aTag ->
                     val aTagText = aTag.text()
                     val link = aTag.attr("href")

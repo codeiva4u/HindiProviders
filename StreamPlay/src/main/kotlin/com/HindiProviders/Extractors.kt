@@ -561,6 +561,13 @@ class Yipsu : Voe() {
     override var mainUrl = "https://yip.su"
 }
 
+class Filelions : VidhideExtractor() {
+    override var name = "Filelions"
+    override var mainUrl = "https://alions.pro"
+    override val requiresReferer = false
+}
+
+
 class Embedwish : Filesim() {
     override val name = "Embedwish"
     override var mainUrl = "https://embedwish.com"
@@ -844,9 +851,10 @@ open class GDFlix : ExtractorApi() {
         return tags
     }
 
+    @Suppress("PARAMETER_NAME_CHANGED_ON_OVERRIDE")
     override suspend fun getUrl(
         url: String,
-        referer: String?,
+        source: String?,
         subtitleCallback: (SubtitleFile) -> Unit,
         callback: (ExtractorLink) -> Unit
     ) {
@@ -865,8 +873,8 @@ open class GDFlix : ExtractorApi() {
                 val trueurl=app.get("https://new2.gdflix.cfd$link", timeout = 30L).document.selectFirst("a.btn-success")?.attr("href") ?:""
                 callback.invoke(
                     ExtractorLink(
-                        "GDFlix[Fast Cloud]",
-                        "GDFLix[Fast Cloud] $tagquality",
+                        "$source GDFlix[Fast Cloud]",
+                        "$source GDFLix[Fast Cloud] $tagquality",
                         trueurl,
                         "",
                         getQualityFromName(tags)
@@ -912,8 +920,8 @@ open class GDFlix : ExtractorApi() {
 
                     callback.invoke(
                         ExtractorLink(
-                            "GDFlix[IndexBot]",
-                            "GDFlix[IndexBot] $tagquality",
+                            "$source GDFlix[IndexBot]",
+                            "$source GDFlix[IndexBot] $tagquality",
                             downloadlink,
                             "https://indexbot.lol/",
                             getQualityFromName(tags)
@@ -927,8 +935,8 @@ open class GDFlix : ExtractorApi() {
                 val link =app.get(Instant_link, allowRedirects = false).headers["Location"]?.split("url=")?.getOrNull(1) ?: ""
                 callback.invoke(
                     ExtractorLink(
-                        "GDFlix[Instant Download]",
-                        "GDFlix[Instant Download] $tagquality",
+                        "$source GDFlix[Instant Download]",
+                        "$source GDFlix[Instant Download] $tagquality",
                         url = link,
                         "",
                         getQualityFromName(tags)
@@ -985,9 +993,10 @@ open class HubCloud : ExtractorApi() {
     override val mainUrl: String = "https://hubcloud.art"
     override val requiresReferer = false
 
+    @Suppress("PARAMETER_NAME_CHANGED_ON_OVERRIDE")
     override suspend fun getUrl(
         url: String,
-        referer: String?,
+        source: String?,
         subtitleCallback: (SubtitleFile) -> Unit,
         callback: (ExtractorLink) -> Unit
     ) {
@@ -1016,8 +1025,8 @@ open class HubCloud : ExtractorApi() {
             if (link.contains("pixeldra")) {
                 callback.invoke(
                     ExtractorLink(
-                        "Pixeldrain",
-                        "Pixeldrain $size",
+                        "$source Pixeldrain",
+                        "$source Pixeldrain $size",
                         link,
                         "",
                         getIndexQuality(header),
@@ -1029,8 +1038,8 @@ open class HubCloud : ExtractorApi() {
                 val downloadLink = response.headers["location"].toString().split("link=").getOrNull(1) ?: link
                 callback.invoke(
                     ExtractorLink(
-                        "Hub-Cloud[Download]",
-                        "Hub-Cloud[Download] $size",
+                        "$source Hub-Cloud[Download]",
+                        "$source Hub-Cloud[Download] $size",
                         downloadLink,
                         "",
                         getIndexQuality(header),
@@ -1040,8 +1049,8 @@ open class HubCloud : ExtractorApi() {
             else if(link.contains(".dev")) {
                 callback.invoke(
                     ExtractorLink(
-                        "Hub-Cloud",
-                        "Hub-Cloud $size",
+                        "$source Hub-Cloud",
+                        "$source Hub-Cloud $size",
                         link,
                         "",
                         getIndexQuality(header),
@@ -1049,7 +1058,7 @@ open class HubCloud : ExtractorApi() {
                 )
             }
             else {
-                loadExtractor(link, subtitleCallback, callback)
+                loadExtractor(link, referer = "$source", subtitleCallback, callback)
             }
         }
     }
@@ -1062,6 +1071,7 @@ open class HubCloud : ExtractorApi() {
 
 }
 
+
 class Driveleech : Driveseed() {
     override val name: String = "Driveleech"
     override val mainUrl: String = "https://driveleech.org"
@@ -1073,8 +1083,15 @@ open class Driveseed : ExtractorApi() {
     override val requiresReferer = false
 
     private fun getIndexQuality(str: String?): Int {
-        return Regex("(\\d{3,4})[pP]").find(str ?: "") ?. groupValues ?. getOrNull(1) ?. toIntOrNull()
+        return Regex("(\\d{3,4}[pP](?:[^.]*\\.){5}[^.]+)").find(str ?: "") ?. groupValues ?. getOrNull(1) ?. toIntOrNull()
             ?: Qualities.Unknown.value
+    }
+
+    private fun getNameQuality(str: String?): String {
+        val tag=Regex("(\\d{3,4}[pP](?:[^.]*\\.){3}[^.]+)").find(str ?: "")?.groupValues ?.get(1)
+            ?: ""
+        Log.d("Phisher tag",tag)
+        return tag
     }
 
 
@@ -1149,28 +1166,32 @@ open class Driveseed : ExtractorApi() {
     }
 
 
-    @Suppress("SENSELESS_COMPARISON")
+    @Suppress("SENSELESS_COMPARISON", "PARAMETER_NAME_CHANGED_ON_OVERRIDE")
     override suspend fun getUrl(
         url: String,
-        referer: String?,
+        source: String?,
         subtitleCallback: (SubtitleFile) -> Unit,
         callback: (ExtractorLink) -> Unit
     ) {
         val document = app.get(url).document
         val qualityText = document.selectFirst("li.list-group-item:contains(Name)")?.text()
         val quality = getIndexQuality(qualityText)
+        val qualityname=getNameQuality(qualityText).replace("."," ")
 
         document.select("a.btn").amap {
             val text = it.text()
+            //Log.d("Phisher text",text)
             val link = it.attr("href")
+            //Log.d("Phisher link",link)
             if(text.contains("Resume Cloud")) {
                 val streamUrl = resumeCloudLink(link)
+                Log.d("Phisher streamUrl", streamUrl.toString())
                 if (streamUrl != null) {
                     callback.invoke(
                         ExtractorLink(
-                            "Driveseed ResumeCloud",
-                            "Driveseed ResumeCloud",
-                            streamUrl.toString(),
+                            "$source ResumeCloud $qualityname",
+                            "$source ResumeCloud $qualityname",
+                            httpsify(streamUrl.toString()),
                             "",
                             quality
                         )
@@ -1182,9 +1203,9 @@ open class Driveseed : ExtractorApi() {
                 if (streamUrl.isNotEmpty()) {
                     callback.invoke(
                         ExtractorLink(
-                            "Driveseed Instant(Download)",
-                            "Driveseed Instant(Download)",
-                            streamUrl,
+                            "$source Instant(Download) $qualityname",
+                            "$source Instant(Download) $qualityname",
+                            httpsify(streamUrl),
                             "",
                             quality
                         )
@@ -1196,8 +1217,8 @@ open class Driveseed : ExtractorApi() {
                 if (streamUrl != null) {
                     callback.invoke(
                         ExtractorLink(
-                            "Driveseed ResumeBot",
-                            "Driveseed ResumeBot(VLC)",
+                            "$source ResumeBot(VLC) $qualityname",
+                            "$source ResumeBot(VLC) $qualityname",
                             streamUrl.toString(),
                             "",
                             quality
@@ -1212,9 +1233,9 @@ open class Driveseed : ExtractorApi() {
                     cfType1.forEach { href ->
                         callback.invoke(
                             ExtractorLink(
-                                "Driveseed CF Type1",
-                                "Driveseed CF Type1",
-                                href,
+                                "$source CF Type1 $qualityname",
+                                "$source CF Type1 $qualityname",
+                                httpsify(href),
                                 "",
                                 quality
                             )
@@ -1225,9 +1246,9 @@ open class Driveseed : ExtractorApi() {
                     cfType2.forEach { href ->
                         callback.invoke(
                             ExtractorLink(
-                                "Driveseed CF Type2",
-                                "Driveseed CF Type2",
-                                href,
+                                "$source CF Type2 $qualityname",
+                                "$source CF Type2 $qualityname",
+                                httpsify(href),
                                 "",
                                 quality
                             )

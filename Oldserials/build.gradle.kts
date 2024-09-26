@@ -1,12 +1,10 @@
 // use an integer for version numbers
-version = 17
-
-
+version = 1
 cloudstream {
     // All of these properties are optional, you can safely remove them
 
-    description = "Indian Multi-language 4K Provider"
-    language = "en"
+    description = "Insian TV Serials/Shows"
+    language = "hi"
     authors = listOf("HindiProviders")
 
     /**
@@ -21,9 +19,6 @@ cloudstream {
     // List of video source types. Users are able to filter for extensions in a given category.
     // You can find a list of avaliable types here:
     // https://recloudstream.github.io/cloudstream/html/app/com.lagradost.cloudstream3/-tv-type/index.html
-    tvTypes = listOf(
-        "Movie",
-        "TvSeries",
-    )
-    iconUrl = "https://raw.githubusercontent.com/LikDev-256/likdev256-tamil-providers/master/UHDmoviesProvider/icon.png"
+    tvTypes = listOf("TvSeries")
+    iconUrl = "https://oldserials.co/pub/assets/images/OldSerials-logo-v3.png"
 }
