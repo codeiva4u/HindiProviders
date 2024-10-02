@@ -1,62 +1,62 @@
-package com.HindiProviders
+package com.Phisher98
 
-//import com.HindiProviders.StreamPlayExtractor.invokeWatchasian
+//import com.Phisher98.StreamPlayExtractor.invokeWatchasian
 import android.util.Log
-import com.HindiProviders.StreamPlayExtractor.invoke2embed
-import com.HindiProviders.StreamPlayExtractor.invokeAllMovieland
-import com.HindiProviders.StreamPlayExtractor.invokeAnimes
-import com.HindiProviders.StreamPlayExtractor.invokeAnitaku
-import com.HindiProviders.StreamPlayExtractor.invokeMoviesdrive
-import com.HindiProviders.StreamPlayExtractor.invokeAoneroom
-import com.HindiProviders.StreamPlayExtractor.invokeAsianHD
-import com.HindiProviders.StreamPlayExtractor.invokeAsiandrama
-//import com.HindiProviders.StreamPlayExtractor.invokeCinemaTv
-import com.HindiProviders.StreamPlayExtractor.invokeMoviesmod
-import com.HindiProviders.StreamPlayExtractor.invokeDahmerMovies
-import com.HindiProviders.StreamPlayExtractor.invokeDoomovies
-import com.HindiProviders.StreamPlayExtractor.invokeDotmovies
-import com.HindiProviders.StreamPlayExtractor.invokeDramacool
-import com.HindiProviders.StreamPlayExtractor.invokeDramaday
-import com.HindiProviders.StreamPlayExtractor.invokeDreamfilm
-import com.HindiProviders.StreamPlayExtractor.invokeDumpStream
-import com.HindiProviders.StreamPlayExtractor.invokeEmovies
-import com.HindiProviders.StreamPlayExtractor.invokeazseries
-import com.HindiProviders.StreamPlayExtractor.invokeFDMovies
-import com.HindiProviders.StreamPlayExtractor.invokeFilmxy
-import com.HindiProviders.StreamPlayExtractor.invokeFlixon
-import com.HindiProviders.StreamPlayExtractor.invokeGhostx
-//import com.HindiProviders.StreamPlayExtractor.invokeGoku
-import com.HindiProviders.StreamPlayExtractor.invokeHdmovies4u
-import com.HindiProviders.StreamPlayExtractor.invokeKimcartoon
-import com.HindiProviders.StreamPlayExtractor.invokeKisskh
-import com.HindiProviders.StreamPlayExtractor.invokeLing
-import com.HindiProviders.StreamPlayExtractor.invokeM4uhd
-import com.HindiProviders.StreamPlayExtractor.invokeMoflix
-import com.HindiProviders.StreamPlayExtractor.invokeMoviehubAPI
-import com.HindiProviders.StreamPlayExtractor.invokeMultiEmbed
-import com.HindiProviders.StreamPlayExtractor.invokeMultimovies
-//import com.HindiProviders.StreamPlayExtractor.invokeNepu
-import com.HindiProviders.StreamPlayExtractor.invokeNetmovies
-import com.HindiProviders.StreamPlayExtractor.invokeNinetv
-import com.HindiProviders.StreamPlayExtractor.invokeNoverse
-import com.HindiProviders.StreamPlayExtractor.invokeNowTv
-import com.HindiProviders.StreamPlayExtractor.invokeRidomovies
-import com.HindiProviders.StreamPlayExtractor.invokeShowflix
-import com.HindiProviders.StreamPlayExtractor.invokeSmashyStream
-import com.HindiProviders.StreamPlayExtractor.invokeTopMovies
-import com.HindiProviders.StreamPlayExtractor.invokeTvMovies
-import com.HindiProviders.StreamPlayExtractor.invokeUhdmovies
-import com.HindiProviders.StreamPlayExtractor.invokeVegamovies
-import com.HindiProviders.StreamPlayExtractor.invokeVidSrc
-import com.HindiProviders.StreamPlayExtractor.invokeVidsrcto
-import com.HindiProviders.StreamPlayExtractor.invokeWatchCartoon
-import com.HindiProviders.StreamPlayExtractor.invokeWatchsomuch
-import com.HindiProviders.StreamPlayExtractor.invokeZoechip
-import com.HindiProviders.StreamPlayExtractor.invokeZshow
-import com.HindiProviders.StreamPlayExtractor.invokekissasian
-import com.HindiProviders.StreamPlayExtractor.invokePlaydesi
-import com.HindiProviders.StreamPlayExtractor.invokeBollyflix
-import com.HindiProviders.StreamPlayExtractor.invokemovies4u
+import com.Phisher98.StreamPlayExtractor.invoke2embed
+import com.Phisher98.StreamPlayExtractor.invokeAllMovieland
+import com.Phisher98.StreamPlayExtractor.invokeAnimes
+import com.Phisher98.StreamPlayExtractor.invokeAnitaku
+import com.Phisher98.StreamPlayExtractor.invokeMoviesdrive
+import com.Phisher98.StreamPlayExtractor.invokeAoneroom
+import com.Phisher98.StreamPlayExtractor.invokeAsianHD
+import com.Phisher98.StreamPlayExtractor.invokeAsiandrama
+//import com.Phisher98.StreamPlayExtractor.invokeCinemaTv
+import com.Phisher98.StreamPlayExtractor.invokeMoviesmod
+import com.Phisher98.StreamPlayExtractor.invokeDahmerMovies
+import com.Phisher98.StreamPlayExtractor.invokeDoomovies
+import com.Phisher98.StreamPlayExtractor.invokeDotmovies
+import com.Phisher98.StreamPlayExtractor.invokeDramacool
+import com.Phisher98.StreamPlayExtractor.invokeDramaday
+import com.Phisher98.StreamPlayExtractor.invokeDreamfilm
+import com.Phisher98.StreamPlayExtractor.invokeDumpStream
+import com.Phisher98.StreamPlayExtractor.invokeEmovies
+import com.Phisher98.StreamPlayExtractor.invokeazseries
+import com.Phisher98.StreamPlayExtractor.invokeFDMovies
+import com.Phisher98.StreamPlayExtractor.invokeFilmxy
+import com.Phisher98.StreamPlayExtractor.invokeFlixon
+import com.Phisher98.StreamPlayExtractor.invokeGhostx
+//import com.Phisher98.StreamPlayExtractor.invokeGoku
+//import com.Phisher98.StreamPlayExtractor.invokeHdmovies4u
+import com.Phisher98.StreamPlayExtractor.invokeKimcartoon
+import com.Phisher98.StreamPlayExtractor.invokeKisskh
+import com.Phisher98.StreamPlayExtractor.invokeLing
+import com.Phisher98.StreamPlayExtractor.invokeM4uhd
+import com.Phisher98.StreamPlayExtractor.invokeMoflix
+import com.Phisher98.StreamPlayExtractor.invokeMoviehubAPI
+import com.Phisher98.StreamPlayExtractor.invokeMultiEmbed
+import com.Phisher98.StreamPlayExtractor.invokeMultimovies
+import com.Phisher98.StreamPlayExtractor.invokeNepu
+import com.Phisher98.StreamPlayExtractor.invokeNetmovies
+import com.Phisher98.StreamPlayExtractor.invokeNinetv
+import com.Phisher98.StreamPlayExtractor.invokeNoverse
+import com.Phisher98.StreamPlayExtractor.invokeNowTv
+import com.Phisher98.StreamPlayExtractor.invokeRidomovies
+import com.Phisher98.StreamPlayExtractor.invokeShowflix
+import com.Phisher98.StreamPlayExtractor.invokeSmashyStream
+import com.Phisher98.StreamPlayExtractor.invokeTopMovies
+import com.Phisher98.StreamPlayExtractor.invokeTvMovies
+import com.Phisher98.StreamPlayExtractor.invokeUhdmovies
+import com.Phisher98.StreamPlayExtractor.invokeVegamovies
+import com.Phisher98.StreamPlayExtractor.invokeVidSrc
+import com.Phisher98.StreamPlayExtractor.invokeVidsrcto
+import com.Phisher98.StreamPlayExtractor.invokeWatchCartoon
+import com.Phisher98.StreamPlayExtractor.invokeWatchsomuch
+import com.Phisher98.StreamPlayExtractor.invokeZoechip
+import com.Phisher98.StreamPlayExtractor.invokeZshow
+import com.Phisher98.StreamPlayExtractor.invokekissasian
+import com.Phisher98.StreamPlayExtractor.invokePlaydesi
+import com.Phisher98.StreamPlayExtractor.invokeBollyflix
+import com.Phisher98.StreamPlayExtractor.invokemovies4u
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.lagradost.cloudstream3.Actor
 import com.lagradost.cloudstream3.ActorData
@@ -86,7 +86,6 @@ import com.lagradost.cloudstream3.toRatingInt
 import com.lagradost.cloudstream3.utils.AppUtils.parseJson
 import com.lagradost.cloudstream3.utils.AppUtils.toJson
 import com.lagradost.cloudstream3.utils.ExtractorLink
-import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlin.math.roundToInt
 import com.lagradost.cloudstream3.addEpisodes
 import com.lagradost.cloudstream3.DubStatus
@@ -159,7 +158,7 @@ open class StreamPlay : TmdbProvider() {
         const val watchCartoonAPI = "https://www1.watchcartoononline.bz"
         const val moflixAPI = "https://moflix-stream.xyz"
         const val zoechipAPI = "https://www1.zoechip.to"
-//        const val nepuAPI = "https://nepu.to"
+        const val nepuAPI = "https://nepu.to"
         const val DramacoolAPI = "https://watchasia.to"
         const val fdMoviesAPI = "https://freedrivemovie.com"
         const val uhdmoviesAPI = "https://uhdmovies.mov"
@@ -169,11 +168,12 @@ open class StreamPlay : TmdbProvider() {
         const val vegaMoviesAPI = "https://vegamovies.fans"
         const val dotmoviesAPI = "https://luxmovies.lol"
         const val tvMoviesAPI = "https://www.tvseriesnmovies.com"
-        const val dahmerMoviesAPI=""
+        const val dahmerMoviesAPI="https://a.datadiff.us.kg"
         const val MovieDrive_API="https://moviesdrive.world"
         const val Asiandrama_API=BuildConfig.AsianDrama_API
         const val bollyflixAPI = "https://bollyflix.beer"
-        const val movies4u = "https://movies4u.poker"
+        const val movies4u = "https://movies4u.gb.net"
+        const val animepaheAPI = "https://animepahe.ru"
         fun getType(t: String?): TvType {
             return when (t) {
                 "movie" -> TvType.Movie
@@ -422,7 +422,6 @@ open class StreamPlay : TmdbProvider() {
         }
     }
 
-    @OptIn(DelicateCoroutinesApi::class)
     override suspend fun loadLinks(
         data: String,
         isCasting: Boolean,
@@ -477,18 +476,6 @@ open class StreamPlay : TmdbProvider() {
                     )
                 },
                 {
-                if (res.isAnime) invokeAnitaku(
-                    res.title,
-                    res.epsTitle,
-                    res.date,
-                    res.year,
-                    res.season,
-                    res.episode,
-                    subtitleCallback,
-                    callback
-                    )
-                },
-                {
                     if (!res.isAnime) invokeDreamfilm(
                         res.title,
                         res.season,
@@ -538,11 +525,10 @@ open class StreamPlay : TmdbProvider() {
                     )
                 },
                 {
-                   if (res.isAsian) invokeKisskh(
+                   if (res.isAsian && !res.isAnime) invokeKisskh(
                         res.title,
                         res.season,
                         res.episode,
-                        res.isAnime,
                         res.lastSeason,
                         subtitleCallback,
                         callback
@@ -602,7 +588,7 @@ open class StreamPlay : TmdbProvider() {
                     )
                 },
                 {
-                    if (!res.isAnime && res.isBollywood) invokeTopMovies(
+                    if (!res.isAnime) invokeTopMovies(
                         res.title,
                         res.year,
                         res.season,
@@ -637,6 +623,8 @@ open class StreamPlay : TmdbProvider() {
             {
                 if (!res.isAnime) invokemovies4u(
                     res.title,
+                    res.episode,
+                    res.season,
                     res.year,
                     subtitleCallback,
                     callback
@@ -755,7 +743,7 @@ open class StreamPlay : TmdbProvider() {
         )
     },
     {
-        if (!res.isAnime) invokeVegamovies(
+        if (!res.isAnime && !res.isBollywood) invokeVegamovies(
             res.title,
             res.year,
             res.season,
@@ -823,6 +811,7 @@ open class StreamPlay : TmdbProvider() {
         )
     },
       {
+          /*
         if (!res.isAnime) invokeHdmovies4u(
             res.title,
             res.imdbId,
@@ -831,6 +820,7 @@ open class StreamPlay : TmdbProvider() {
             subtitleCallback,
             callback
         )
+           */
     },
  {
         if (res.isAsian) invokeAsianHD(
@@ -851,7 +841,7 @@ open class StreamPlay : TmdbProvider() {
         )
     },
     {
-        invokeZshow(
+        if (!res.isAsian && !res.isBollywood) invokeZshow(
             res.title,
             res.year,
             res.season,
@@ -882,7 +872,7 @@ open class StreamPlay : TmdbProvider() {
             callback
         )
     },
-/*    {
+   {
         if (!res.isAnime) invokeNepu(
             res.title,
             res.airedYear ?: res.year,
@@ -891,8 +881,6 @@ open class StreamPlay : TmdbProvider() {
             callback
         )
     },
-
- */
     {
         if (!res.isAnime) invokePlaydesi(
             res.title,

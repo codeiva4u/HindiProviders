@@ -3,7 +3,7 @@
 import org.jetbrains.kotlin.konan.properties.Properties
 
 // use an integer for version numbers
-version = 34
+version = 51
 
 android {
     defaultConfig {
@@ -22,6 +22,8 @@ android {
         buildConfigField("String", "MultiMovies_API", "\"${properties.getProperty("MultiMovies_API")}\"")
         buildConfigField("String", "MovieDrive_API", "\"${properties.getProperty("MovieDrive_API")}\"")
         buildConfigField("String", "AsianDrama_API", "\"${properties.getProperty("AsianDrama_API")}\"")
+        buildConfigField("String", "ANICHI_API", "\"${properties.getProperty("ANICHI_API")}\"")
+
     }
 }
 
@@ -30,7 +32,7 @@ cloudstream {
     // All of these properties are optional, you can safely remove them
 
      description = "#1 best extention based on MultiAPI"
-     authors = listOf("HindiProviders", "Hexated")
+     authors = listOf("Phisher98", "Hexated")
 
     /**
      * Status int as the following:

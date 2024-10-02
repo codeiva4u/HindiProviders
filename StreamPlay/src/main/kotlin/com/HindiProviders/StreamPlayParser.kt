@@ -1,8 +1,143 @@
-package com.HindiProviders
+package com.Phisher98
 
 import com.fasterxml.jackson.annotation.JsonProperty
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
+
+//Anichi
+
+data class Anichi(
+    val data: AnichiData,
+)
+
+data class AnichiData(
+    val shows: AnichiShows,
+)
+
+data class AnichiShows(
+    val pageInfo: PageInfo,
+    val edges: List<Edge>,
+)
+
+data class PageInfo(
+    val total: Long,
+)
+
+data class Edge(
+    @JsonProperty("_id")
+    val id: String,
+    val name: String,
+    val englishName: String,
+    val nativeName: String,
+    val slugTime: Any?,
+    val thumbnail: String,
+    val lastEpisodeInfo: LastEpisodeInfo,
+    val lastEpisodeDate: LastEpisodeDate,
+    val type: String,
+    val season: Season,
+    val score: Double,
+    val airedStart: AiredStart,
+    val availableEpisodes: AvailableEpisodes,
+    val episodeDuration: String,
+    val episodeCount: String,
+    val lastUpdateEnd: String,
+)
+
+data class LastEpisodeInfo(
+    val sub: Sub,
+    val dub: Dub,
+)
+
+data class Sub(
+    val episodeString: String,
+)
+
+data class Dub(
+    val episodeString: String,
+)
+
+data class LastEpisodeDate(
+    val sub: Sub2,
+    val dub: Dub2,
+    val raw: Map<String, Any>,
+)
+
+data class Sub2(
+    val hour: Long,
+    val minute: Long,
+    val year: Long,
+    val month: Long,
+    val date: Long,
+)
+
+data class Dub2(
+    val hour: Long,
+    val minute: Long,
+    val year: Long,
+    val month: Long,
+    val date: Long,
+)
+
+data class Season(
+    val quarter: String,
+    val year: Long,
+)
+
+data class AiredStart(
+    val year: Long,
+    val month: Long,
+    val date: Long,
+    val hour: Long,
+    val minute: Long,
+)
+
+data class AvailableEpisodes(
+    val sub: Long,
+    val dub: Long,
+    val raw: Long,
+)
+
+//Anichi Ep Parser
+
+data class AnichiEP(
+    val data: AnichiEPData,
+)
+
+data class AnichiEPData(
+    val episode: AnichiEpisode,
+)
+
+data class AnichiEpisode(
+    val sourceUrls: List<SourceUrl>,
+)
+
+data class SourceUrl(
+    val sourceUrl: String,
+    val sourceName: String,
+    val downloads: AnichiDownloads?,
+)
+
+data class AnichiDownloads(
+    val sourceName: String,
+    val downloadUrl: String,
+)
+
+//Anichi Download URL Parser
+
+data class AnichiDownload(
+    val links: List<AnichiDownloadLink>,
+)
+
+data class AnichiDownloadLink(
+    val link: String,
+    val hls: Boolean,
+    val mp4: Boolean?,
+    val resolutionStr: String,
+    val priority: Long,
+    val src: String?,
+)
+
+
 
 data class CrunchyrollAccessToken(
     val accessToken: String? = null,
@@ -221,6 +356,7 @@ data class JikanExternal(
 data class JikanData(
     @JsonProperty("title") val title: String? = null,
     @JsonProperty("external") val external: ArrayList<JikanExternal>? = arrayListOf(),
+    val season: String,
 )
 
 data class JikanResponse(
@@ -318,9 +454,48 @@ data class CrunchyrollSourcesResponses(
     )
 }
 
+//anime animepahe parser
+
+data class animepahe(
+    val total: Long,
+    @JsonProperty("per_page")
+    val perPage: Long,
+    @JsonProperty("current_page")
+    val currentPage: Long,
+    @JsonProperty("last_page")
+    val lastPage: Long,
+    @JsonProperty("next_page_url")
+    val nextPageUrl: Any?,
+    @JsonProperty("prev_page_url")
+    val prevPageUrl: Any?,
+    val from: Long,
+    val to: Long,
+    val data: List<Daum>,
+)
+
+data class Daum(
+    val id: Long,
+    @JsonProperty("anime_id")
+    val animeId: Long,
+    val episode: Int,
+    val episode2: Long,
+    val edition: String,
+    val title: String,
+    val snapshot: String,
+    val disc: String,
+    val audio: String,
+    val duration: String,
+    val session: String,
+    val filler: Long,
+    @JsonProperty("created_at")
+    val createdAt: String,
+)
+
+
 data class MALSyncSites(
     @JsonProperty("Zoro") val zoro: HashMap<String?, HashMap<String, String?>>? = hashMapOf(),
     @JsonProperty("9anime") val nineAnime: HashMap<String?, HashMap<String, String?>>? = hashMapOf(),
+    @JsonProperty("animepahe") val animepahe: HashMap<String?, HashMap<String, String?>>? = hashMapOf(),
 )
 
 data class MALSyncResponses(
@@ -343,6 +518,20 @@ data class GokuData(
 data class GokuServer(
     @JsonProperty("data") val data: GokuData? = GokuData(),
 )
+
+//MiruroanimeGogo
+
+data class MiruroanimeGogo(
+    val sources: List<MiruroSource>,
+    val download: String,
+)
+
+data class MiruroSource(
+    val url: String,
+    val isM3U8: Boolean,
+    val quality: String,
+)
+
 
 data class AllMovielandEpisodeFolder(
     @JsonProperty("title") val title: String? = null,

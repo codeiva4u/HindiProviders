@@ -5,7 +5,7 @@ cloudstream {
 
     description = "Insian TV Serials/Shows"
     language = "hi"
-    authors = listOf("HindiProviders")
+    authors = listOf("Phisher98")
 
     /**
     * Status int as the following:
@@ -20,5 +20,5 @@ cloudstream {
     // You can find a list of avaliable types here:
     // https://recloudstream.github.io/cloudstream/html/app/com.lagradost.cloudstream3/-tv-type/index.html
     tvTypes = listOf("TvSeries")
-    iconUrl = "https://oldserials.co/pub/assets/images/OldSerials-logo-v3.png"
+    iconUrl = "https://animekhor.org/wp-content/uploads/2021/11/AnimeKhor_darkmode.png"
 }
