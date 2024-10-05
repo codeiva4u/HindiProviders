@@ -1204,7 +1204,7 @@ object StreamPlayExtractor : StreamPlay() {
             {
                 type = "TV"
             }
-            val query="""$api?variables={"search":{"types":["$type"],"season":"$season","query":"$name"},"limit":26,"page":1,"translationType":"sub","countryOrigin":"ALL"}&extensions={"persistedQuery":{"version":1,"sha256Hash":"$queryhash"}}"""
+            val query="""$api?variables={"search":{"types":["$type"],"year":$year,"season":"$season","query":"$name"},"limit":26,"page":1,"translationType":"sub","countryOrigin":"ALL"}&extensions={"persistedQuery":{"version":1,"sha256Hash":"$queryhash"}}"""
             val response= app.get(query, referer = privatereferer).parsedSafe<Anichi>()?.data?.shows?.edges
         val tes= app.get(query, referer = privatereferer)
         Log.d("Phisher Anichi", query.toString())
@@ -1854,7 +1854,7 @@ object StreamPlayExtractor : StreamPlay() {
                             }
                     entries.amap { it ->
                         val tags =
-                            """(?:1080p|2160p)(.*)""".toRegex().find(it.text())?.groupValues?.get(1)
+                            """(?:720p|1080p|2160p)(.*)""".toRegex().find(it.text())?.groupValues?.get(1)
                                 ?.trim()
                         val tagList = aTag.split(",")  // Changed variable name to tagList
                         val href = it.nextElementSibling()?.select("a")?.find { anchor ->
@@ -1864,10 +1864,13 @@ object StreamPlayExtractor : StreamPlay() {
                         }?.attr("href") ?: ""
                         val selector =
                             if (season == null) "p a:matches(V-Cloud|G-Direct)" else "h4:matches(0?$episode) ~ p a:matches(V-Cloud|G-Direct)"
+                        Log.d("Phisher url veg", href.toString())
                         if (href.isNotEmpty()) {
                             app.get(
                                 href, interceptor = wpRedisInterceptor
-                            ).document.select("div.entry-content > $selector").map { sources ->
+                            ).document.select("div.entry-content > $selector").first()?.let { sources ->
+                                Log.d("Phisher url selector", selector.toString())
+                                Log.d("Phisher url sources", sources.toString())
                                 val server = sources.attr("href")
                                 loadCustomTagExtractor(
                                     tags,
@@ -2435,7 +2438,7 @@ object StreamPlayExtractor : StreamPlay() {
         app.get(subUrl).parsedSafe<WatchsomuchSubResponses>()?.subtitles?.map { sub ->
             subtitleCallback.invoke(
                 SubtitleFile(
-                    sub.label ?: "", fixUrl(
+                    sub.label?.substringBefore("&nbsp") ?: "", fixUrl(
                         sub.url
                             ?: return@map null, watchSomuchAPI
                     )
