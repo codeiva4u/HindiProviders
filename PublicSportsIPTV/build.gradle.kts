@@ -1,11 +1,22 @@
-// use an integer for version numbers
-version = 9
+@file:Suppress("UnstableApiUsage")
 
+import org.jetbrains.kotlin.konan.properties.Properties
+
+version = 1
+
+android {
+    defaultConfig {
+        val properties = Properties()
+        properties.load(project.rootProject.file("local.properties").inputStream())
+        buildConfigField("String", "FanCode_API", "\"${properties.getProperty("FanCode_API")}\"")
+
+    }
+}
 
 cloudstream {
     // All of these properties are optional, you can safely remove them
 
-    description = "Includes DramaCool,KissAsian (All Clones),KissAsian V2"
+    description = "Sports Live Streams"
     language    = "en"
     authors = listOf("Phisher98")
 
@@ -21,7 +32,7 @@ cloudstream {
     // List of video source types. Users are able to filter for extensions in a given category.
     // You can find a list of avaliable types here:
     // https://recloudstream.github.io/cloudstream/html/app/com.lagradost.cloudstream3/-tv-type/index.html
-    tvTypes = listOf("TvSeries,AsianDrama")
+    tvTypes = listOf("Live")
 
-    iconUrl = "https://play-lh.googleusercontent.com/IaCb2JXII0OV611MQ-wSA8v_SAs9XF6E3TMDiuxGGXo4wp9bI60GtDASIqdERSTO5XU"
+    iconUrl="https://www.thestatesman.com/wp-content/uploads/2021/05/fancode.jpg"
 }

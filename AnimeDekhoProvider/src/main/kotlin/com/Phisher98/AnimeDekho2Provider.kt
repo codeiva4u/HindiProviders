@@ -1,15 +1,16 @@
 package com.Phisher98
 
-import com.lagradost.api.Log
+//import android.util.Log
 import com.lagradost.cloudstream3.*
 import com.lagradost.cloudstream3.utils.*
 import com.lagradost.cloudstream3.utils.AppUtils.parseJson
 import com.lagradost.cloudstream3.utils.AppUtils.toJson
+import okio.ByteString.Companion.decodeBase64
 import org.jsoup.nodes.Element
 
-open class AnimeDekhoProvider : MainAPI() {
-    override var mainUrl = "https://animedekho.net"
-    override var name = "Anime Dekho"
+class AnimeDekho2Provider : MainAPI() {
+    override var mainUrl = "https://animedekho.com"
+    override var name = "Anime Dekho 2"
     override val hasMainPage = true
     override var lang = "hi"
     override val hasDownloadSupport = true
@@ -46,11 +47,8 @@ open class AnimeDekhoProvider : MainAPI() {
     private fun Element.toSearchResult(): AnimeSearchResponse? {
         val href = this.selectFirst("a.lnk-blk")?.attr("href") ?: return null
         val title = this.selectFirst("header h2")?.text() ?: "null"
-        var posterUrl = this.selectFirst("div figure img")?.attr("src")
-        if (posterUrl!!.contains("data:image"))
-        {
-            posterUrl=this.selectFirst("div figure img")?.attr("data-lazy-src")
-        }
+        val posterUrl = this.selectFirst("div figure img")?.attr("src")
+
         return newAnimeSearchResponse(title, Media(href, posterUrl).toJson(), TvType.Anime, false) {
             this.posterUrl = posterUrl
             addDubStatus(dubExist = true, subExist = true)
@@ -69,8 +67,8 @@ open class AnimeDekhoProvider : MainAPI() {
         val media = parseJson<Media>(url)
         val document = app.get(media.url).document
 
-        val title = document.selectFirst("h1.entry-title")?.text()?.trim()?.substringAfter("Watch Online ")
-            ?: document.selectFirst("meta[property=og:title]")?.attr("content")?.substringAfter("Watch Online ")?.substringBefore(" Movie in Hindi Dubbed Free") ?: "No Title"
+        val title = document.selectFirst("h1.entry-title")?.text()?.trim()
+            ?: document.selectFirst("meta[property=og:image:alt]")?.attr("content") ?: "No Title"
         val poster = fixUrlNull(document.selectFirst("div.post-thumbnail figure img")?.attr("src") ?: media.poster)
         val plot = document.selectFirst("div.entry-content p")?.text()?.trim()
             ?: document.selectFirst("meta[name=twitter:description]")?.attr("content")
@@ -80,17 +78,14 @@ open class AnimeDekhoProvider : MainAPI() {
         val lst = document.select("ul.seasons-lst li")
 
         return if (lst.isEmpty()) {
-            newMovieLoadResponse(title, url, TvType.Movie, Media(
-                media.url,
-                mediaType = 1
-            ).toJson()) {
+            newMovieLoadResponse(title, url, TvType.Movie, Media(media.url, mediaType = 1).toJson()) {
                 this.posterUrl = poster
                 this.plot = plot
                 this.year = year
             }
         } else {
             @Suppress("NAME_SHADOWING") val episodes = document.select("ul.seasons-lst li").mapNotNull {
-                val name = it.selectFirst("h3.title")?.ownText() ?: "null"
+                val name = it.selectFirst("h3.title")?.text() ?: "null"
                 val href = it.selectFirst("a")?.attr("href") ?: return@mapNotNull null
                 val poster=it.selectFirst("div > div > figure > img")?.attr("src")
                 val seasonnumber = it.selectFirst("h3.title > span")?.text().toString().substringAfter("S").substringBefore("-")
@@ -112,18 +107,17 @@ open class AnimeDekhoProvider : MainAPI() {
         callback: (ExtractorLink) -> Unit,
     ): Boolean {
         val media = parseJson<Media>(data)
-        val body = app.get(media.url).document.selectFirst("body")?.attr("class") ?: return false
-        val term = Regex("""(?:term|postid)-(\d+)""").find(body)?.groupValues?.get(1) ?: throw ErrorLoadingException("no id found")
-        for (i in 0..4) {
-            val link = app.get("$mainUrl/?trdekho=$i&trid=$term&trtype=${media.mediaType}")
-                .document.selectFirst("iframe")?.attr("src")
-                ?: throw ErrorLoadingException("no iframe found")
-            Log.d("Phisher",link)
-            loadExtractor(link,subtitleCallback, callback)
+        val res=app.get(media.url).document
+        res.select("ul.bx-lst.aa-tbs li a").map {
+            val links=it.attr("data-src").decodeBase64().toString().substringAfter("=").substringBefore("]")
+            val url=Extractlinks(links)
+            loadExtractor(url,subtitleCallback, callback)
         }
         return true
     }
 
-    data class Media(val url: String, val poster: String? = null, val mediaType: Int? = null)
-
+    suspend fun Extractlinks(url: String): String {
+       val link= app.get(url).document.selectFirst("div iframe")?.attr("src") ?:""
+        return link
+    }
 }

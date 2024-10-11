@@ -248,19 +248,22 @@ class VCloud : ExtractorApi() {
         val doc = app.get(href).document
         val scriptTag = doc.selectFirst("script:containsData(url)")?.toString() ?:""
         val urlValue = Regex("var url = '([^']*)'").find(scriptTag) ?. groupValues ?. get(1) ?: ""
-        Log.d("Phisher Vega",urlValue)
         if (urlValue.isNotEmpty()) {
             val document = app.get(urlValue).document
             val size = document.selectFirst("i#size")?.text() ?: ""
             val div = document.selectFirst("div.card-body")
             val header = document.selectFirst("div.card-header")?.text() ?: ""
+            val headerdetails =
+                """\.\d{3,4}p\.(.*)-[^-]*${'$'}""".toRegex().find(header)?.groupValues?.get(1)
+                    ?.trim()
+            Log.d("Phisher Vega",header)
             div?.select("h2 a.btn")?.apmap {
                 val link = it.attr("href")
                 if (link.contains("technorozen.workers.dev")) {
                     @Suppress("NAME_SHADOWING") val href = app.get(link).document.selectFirst("#vd")?.attr("href") ?: ""
                     callback.invoke(
                         ExtractorLink(
-                            "V-Cloud 10 Gbps $header",
+                            "V-Cloud 10 Gbps $headerdetails",
                             "V-Cloud 10 Gbps $size",
                             href,
                             "",
@@ -271,7 +274,7 @@ class VCloud : ExtractorApi() {
                     if (link.contains("pixeldra")) {
                         callback.invoke(
                             ExtractorLink(
-                                "Pixeldrain $header",
+                                "Pixeldrain $headerdetails",
                                 "Pixeldrain $size",
                                 link,
                                 "",
@@ -285,7 +288,7 @@ class VCloud : ExtractorApi() {
                                 ?: link
                         callback.invoke(
                             ExtractorLink(
-                                "V-Cloud[Download]",
+                                "V-Cloud[Download] $headerdetails",
                                 "V-Cloud[Download] $size",
                                 downloadLink,
                                 "",
@@ -295,7 +298,7 @@ class VCloud : ExtractorApi() {
                     } else if (link.contains(".dev")) {
                         callback.invoke(
                             ExtractorLink(
-                                "V-Cloud $header",
+                                "V-Cloud $headerdetails",
                                 "V-Cloud $size",
                                 link,
                                 "",
@@ -305,7 +308,7 @@ class VCloud : ExtractorApi() {
                     } else if (link.contains(".hubcdn.xyz")) {
                         callback.invoke(
                             ExtractorLink(
-                                "V-Cloud $header",
+                                "V-Cloud $headerdetails",
                                 "V-Cloud $size",
                                 link,
                                 "",
@@ -315,7 +318,7 @@ class VCloud : ExtractorApi() {
                     } else if (link.contains(".lol")) {
                         callback.invoke(
                             ExtractorLink(
-                                "V-Cloud [FSL] $header",
+                                "V-Cloud [FSL] $headerdetails",
                                 "V-Cloud $size",
                                 link,
                                 "",
@@ -1168,49 +1171,27 @@ open class HubCloud : ExtractorApi() {
 class Driveleech : Driveseed() {
     override val name: String = "Driveleech"
     override val mainUrl: String = "https://driveleech.org"
-}
-
-open class Driveseed : ExtractorApi() {
-    override val name: String = "Driveseed"
-    override val mainUrl: String = "https://driveseed.org"
     override val requiresReferer = false
 
     private fun getIndexQuality(str: String?): Int {
-        return Regex("(\\d{3,4}[pP](?:[^.]*\\.){5}[^.]+)").find(str ?: "") ?. groupValues ?. getOrNull(1) ?. toIntOrNull()
+        return Regex("(\\d{3,4})[pP]").find(str ?: "") ?. groupValues ?. getOrNull(1) ?. toIntOrNull()
             ?: Qualities.Unknown.value
     }
 
-    private fun getNameQuality(str: String?): String {
-        val tag=Regex("(\\d{3,4}[pP](?:[^.]*\\.){3}[^.]+)").find(str ?: "")?.groupValues ?.get(1)
-            ?: ""
-        Log.d("Phisher tag",tag)
-        return tag
-    }
-
-
     private suspend fun CFType1(url: String): List<String> {
-        val cfWorkersLink = url.replace("/file", "/wfile") + "?type=1"
-        val document = app.get(cfWorkersLink).document
-        val links = document.select("a.btn-success").map { it.attr("href") }
+        val document = app.get(url+"?type=1").document
+        val links = document.select("a.btn-success").mapNotNull { it.attr("href") }
         return links
     }
 
-    private suspend fun CFType2(url: String): List<String> {
-        val cfWorkersLink = url.replace("/file", "/wfile") + "?type=2"
-        val document = app.get(cfWorkersLink).document
-        val links = document.select("a.btn-success").map { it.attr("href") }
-        return links
-    }
-
-    private suspend fun resumeCloudLink(url: String): String? {
+    private suspend fun resumeCloudLink(url: String): String {
         val resumeCloudUrl = mainUrl + url
         val document = app.get(resumeCloudUrl).document
-        val link = document.selectFirst("a.btn-success")?.attr("href")
+        val link = document.selectFirst("a.btn-success")?.attr("href").toString()
         return link
     }
 
-
-    private suspend fun resumeBot(url : String): String? {
+    private suspend fun resumeBot(url : String): String {
         val resumeBotResponse = app.get(url)
         val resumeBotDoc = resumeBotResponse.document.toString()
         val ssid = resumeBotResponse.cookies["PHPSESSID"]
@@ -1254,104 +1235,220 @@ open class Driveseed : ExtractorApi() {
             downloadlink.toString().substringAfter("url\":\"")
                 .substringBefore("\",\"name")
                 .replace("\\/", "/")
-
-        return finaldownloadlink
+        val link = finaldownloadlink
+        return link
     }
 
 
-    @Suppress("PARAMETER_NAME_CHANGED_ON_OVERRIDE")
     override suspend fun getUrl(
         url: String,
-        source: String?,
+        referer: String?,
         subtitleCallback: (SubtitleFile) -> Unit,
         callback: (ExtractorLink) -> Unit
     ) {
         val document = app.get(url).document
-        val qualityText = document.selectFirst("li.list-group-item:contains(Name)")?.text()
-        val quality = getIndexQuality(qualityText)
-        val qualityname=getNameQuality(qualityText).replace("."," ")
-
-        document.select("a.btn").amap {
-            val text = it.text()
-            //Log.d("Phisher text",text)
-            val link = it.attr("href")
-            if(text.contains("Resume Cloud")) {
-                val streamUrl = resumeCloudLink(link)
-                if (streamUrl!= null) {
+        val quality = document.selectFirst("li.list-group-item:contains(Name)")?.text() ?: ""
+        val size = document.selectFirst("li.list-group-item:contains(Size)")?.text()?.replace("Size : ", "") ?: ""
+        document.select("div.text-center > a").amap { element ->
+            val text = element.text()
+            val href = element.attr("href")
+            when {
+                text.contains("Instant Download") -> {
+                    val instant = instantLink(href)
                     callback.invoke(
                         ExtractorLink(
-                            "$source ResumeCloud $qualityname",
-                            "$source ResumeCloud $qualityname",
-                            httpsify(streamUrl.toString()),
+                            "$name Instant(Download)",
+                            "$name Instant(Download) $size",
+                            instant,
                             "",
-                            quality
+                            getIndexQuality(quality)
                         )
                     )
                 }
-            }
-            else if(text.contains("Instant Download")) {
-                val streamUrl = instantLink(link)
-                if (streamUrl.isNotEmpty()) {
+                text.contains("Resume Worker Bot") -> {
+                    val resumeLink = resumeBot(href)
                     callback.invoke(
                         ExtractorLink(
-                            "$source Instant(Download) $qualityname",
-                            "$source Instant(Download) $qualityname",
-                            httpsify(streamUrl),
+                            "$name ResumeBot(VLC)",
+                            "$name ResumeBot(VLC) $size",
+                            resumeLink,
                             "",
-                            quality
+                            getIndexQuality(quality)
                         )
                     )
                 }
-            }
-            else if(text.contains("Resume Worker Bot")) {
-                val streamUrl = resumeBot(link)
-                if (streamUrl != null) {
-                    callback.invoke(
-                        ExtractorLink(
-                            "$source ResumeBot(VLC) $qualityname",
-                            "$source ResumeBot(VLC) $qualityname",
-                            streamUrl.toString(),
-                            "",
-                            quality
-                        )
-                    )
-                }
-            }
-            else if(text.contains("Direct Links")) {
-                val cfType1 = CFType1(url)
-                val cfType2 = CFType2(url)
-                if (cfType1.isNotEmpty()) {
-                    cfType1.forEach { href ->
+                text.contains("Direct Links") -> {
+                    val link = mainUrl + href
+                    CFType1(link).forEach {
                         callback.invoke(
                             ExtractorLink(
-                                "$source CF Type1 $qualityname",
-                                "$source CF Type1 $qualityname",
-                                httpsify(href),
+                                "$name CF Type1",
+                                "$name CF Type1 $size",
+                                it,
                                 "",
-                                quality
+                                getIndexQuality(quality)
                             )
                         )
                     }
                 }
-                if (cfType2.isNotEmpty()) {
-                    cfType2.forEach { href ->
-                        callback.invoke(
-                            ExtractorLink(
-                                "$source CF Type2 $qualityname",
-                                "$source CF Type2 $qualityname",
-                                httpsify(href),
-                                "",
-                                quality
-                            )
+                text.contains("Resume Cloud") -> {
+                    val resumeCloud = resumeCloudLink(href)
+                    callback.invoke(
+                        ExtractorLink(
+                            "$name ResumeCloud",
+                            "$name ResumeCloud $size",
+                            resumeCloud,
+                            "",
+                            getIndexQuality(quality)
                         )
-                    }
+                    )
                 }
-            }
-            else {
-                //Nothing
+                else -> {
+                }
             }
         }
+    }
+}
 
+open class Driveseed : ExtractorApi() {
+    override val name: String = "Driveseed"
+    override val mainUrl: String = "https://driveseed.org"
+    override val requiresReferer = false
+
+    private fun getIndexQuality(str: String?): Int {
+        return Regex("(\\d{3,4})[pP]").find(str ?: "") ?. groupValues ?. getOrNull(1) ?. toIntOrNull()
+            ?: Qualities.Unknown.value
+    }
+
+    private suspend fun CFType1(url: String): List<String> {
+        val document = app.get(url+"?type=1").document
+        val links = document.select("a.btn-success").mapNotNull { it.attr("href") }
+        return links
+    }
+
+    private suspend fun resumeCloudLink(url: String): String {
+        val resumeCloudUrl = mainUrl + url
+        val document = app.get(resumeCloudUrl).document
+        val link = document.selectFirst("a.btn-success")?.attr("href").toString()
+        return link
+    }
+
+    private suspend fun resumeBot(url : String): String {
+        val resumeBotResponse = app.get(url)
+        val resumeBotDoc = resumeBotResponse.document.toString()
+        val ssid = resumeBotResponse.cookies["PHPSESSID"]
+        val resumeBotToken = Regex("formData\\.append\\('token', '([a-f0-9]+)'\\)").find(resumeBotDoc)?.groups?.get(1)?.value
+        val resumeBotPath = Regex("fetch\\('/download\\?id=([a-zA-Z0-9/+]+)'").find(resumeBotDoc)?.groups?.get(1)?.value
+        val resumeBotBaseUrl = url.split("/download")[0]
+        val requestBody = FormBody.Builder()
+            .addEncoded("token", "$resumeBotToken")
+            .build()
+
+        val jsonResponse = app.post(resumeBotBaseUrl + "/download?id=" + resumeBotPath,
+            requestBody = requestBody,
+            headers = mapOf(
+                "Accept" to "*/*",
+                "Origin" to resumeBotBaseUrl,
+                "Sec-Fetch-Site" to "same-origin"
+            ),
+            cookies = mapOf("PHPSESSID" to "$ssid"),
+            referer = url
+        ).text
+        val jsonObject = JSONObject(jsonResponse)
+        val link = jsonObject.getString("url")
+        return link
+    }
+
+    private suspend fun instantLink(finallink: String): String {
+        val url = if(finallink.contains("video-leech")) "video-leech.xyz" else "video-seed.xyz"
+        val token = finallink.substringAfter("https://$url/?url=")
+        val downloadlink = app.post(
+            url = "https://$url/api",
+            data = mapOf(
+                "keys" to token
+            ),
+            referer = finallink,
+            headers = mapOf(
+                "x-token" to url,
+                "User-Agent" to "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:125.0) Gecko/20100101 Firefox/125.0"
+            )
+        )
+        val finaldownloadlink =
+            downloadlink.toString().substringAfter("url\":\"")
+                .substringBefore("\",\"name")
+                .replace("\\/", "/")
+        val link = finaldownloadlink
+        return link
+    }
+
+
+    override suspend fun getUrl(
+        url: String,
+        referer: String?,
+        subtitleCallback: (SubtitleFile) -> Unit,
+        callback: (ExtractorLink) -> Unit
+    ) {
+        val document = app.get(url).document
+        val quality = document.selectFirst("li.list-group-item:contains(Name)")?.text() ?: ""
+        val size = document.selectFirst("li.list-group-item:contains(Size)")?.text()?.replace("Size : ", "") ?: ""
+        document.select("div.text-center > a").amap { element ->
+            val text = element.text()
+            val href = element.attr("href")
+            when {
+                text.contains("Instant Download") -> {
+                    val instant = instantLink(href)
+                    callback.invoke(
+                        ExtractorLink(
+                            "$name Instant(Download)",
+                            "$name Instant(Download) $size",
+                            instant,
+                            "",
+                            getIndexQuality(quality)
+                        )
+                    )
+                }
+                text.contains("Resume Worker Bot") -> {
+                    val resumeLink = resumeBot(href)
+                    callback.invoke(
+                        ExtractorLink(
+                            "$name ResumeBot(VLC)",
+                            "$name ResumeBot(VLC) $size",
+                            resumeLink,
+                            "",
+                            getIndexQuality(quality)
+                        )
+                    )
+                }
+                text.contains("Direct Links") -> {
+                    val link = mainUrl + href
+                    CFType1(link).forEach {
+                        callback.invoke(
+                            ExtractorLink(
+                                "$name CF Type1",
+                                "$name CF Type1 $size",
+                                it,
+                                "",
+                                getIndexQuality(quality)
+                            )
+                        )
+                    }
+                }
+                text.contains("Resume Cloud") -> {
+                    val resumeCloud = resumeCloudLink(href)
+                    callback.invoke(
+                        ExtractorLink(
+                            "$name ResumeCloud",
+                            "$name ResumeCloud $size",
+                            resumeCloud,
+                            "",
+                            getIndexQuality(quality)
+                        )
+                    )
+                }
+                else -> {
+                }
+            }
+        }
     }
 }
 

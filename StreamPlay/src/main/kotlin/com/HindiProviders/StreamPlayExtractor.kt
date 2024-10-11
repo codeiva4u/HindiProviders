@@ -2,6 +2,8 @@ package com.Phisher98
 
 import android.annotation.SuppressLint
 import android.util.Log
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import com.lagradost.cloudstream3.*
 import com.lagradost.cloudstream3.APIHolder.unixTimeMS
 import com.lagradost.cloudstream3.utils.*
@@ -23,6 +25,8 @@ import org.mozilla.javascript.Scriptable
 import com.lagradost.cloudstream3.extractors.VidSrcTo
 import com.lagradost.cloudstream3.extractors.VidSrcExtractor
 import com.lagradost.cloudstream3.network.CloudflareKiller
+import java.lang.reflect.Type
+
 
 
 val session = Session(Requests().baseClient)
@@ -1571,7 +1575,6 @@ object StreamPlayExtractor : StreamPlay() {
                 Regex("""(?i)<a\s+href="([^"]*?\b$searchtitle\b[^"]*?\b$year\b[^"]*?)"[^>]*>""").find(
                     it.toString()
                 )?.groupValues?.get(1)
-            //Log.d("Phisher bolly", "$hrefpattern")
             val detailDoc = hrefpattern?.let { app.get(it).document }
             val iSelector = if (season == null) {
                 "div.entry-content p:has(:matches($year))"
@@ -1589,9 +1592,15 @@ object StreamPlayExtractor : StreamPlay() {
             }.filter { it.first.contains(Regex("(2160p)|(1080p)")) }
                 .filter { element -> !element.toString().contains("Download", true) }
             iframeList.amap { (quality, link) ->
-                Log.d("Phisher", link.toString())
                 val driveLink = bypassHrefli(link ?: "") ?: ""
-                loadExtractor(driveLink, referer = "UHDMovies", subtitleCallback, callback)
+                loadSourceNameExtractor(
+                    "UHDMovies",
+                    driveLink,
+                    "",
+                    subtitleCallback,
+                    callback,
+                    getQualityFromName("")
+                )
             }
         }
     }
@@ -1749,12 +1758,26 @@ object StreamPlayExtractor : StreamPlay() {
                     val domain= getBaseUrl(link)
                     val server="$domain$file"
                     Log.d("Phisher",link)
-                    loadExtractor(server, "MoviesMOD", subtitleCallback, callback)
+                    loadSourceNameExtractor(
+                        "Modflix",
+                        server,
+                        "",
+                        subtitleCallback,
+                        callback,
+                        getQualityFromName("")
+                    )
                 }
                 val server = Unblockedlinks(link) ?: ""
                 if (server.isNotEmpty()) {
                     Log.d("Phisher",server)
-                    loadExtractor(server, "MoviesMOD", subtitleCallback, callback)
+                    loadSourceNameExtractor(
+                        "Modflix",
+                        server,
+                        "",
+                        subtitleCallback,
+                        callback,
+                        getQualityFromName("")
+                    )
                 }
             }
         }
@@ -1840,7 +1863,7 @@ object StreamPlayExtractor : StreamPlay() {
                     Log.d("Phisher url veg", hrefpattern.toString())
                     val hTag = if (season == null) "h5" else "h3,h5"
                     val aTag =
-                        if (season == null) "Download Now" else "V-Cloud,Download Now,G-Direct"
+                        if (season == null) "Download Now" else "V-Cloud,Download Now,G-Direct,Episode Links"
                     val sTag = if (season == null) "" else "(Season $season|S$seasonSlug)"
                     val entries =
                         res.select("div.entry-content > $hTag:matches((?i)$sTag.*(720p|1080p|2160p))")
@@ -1857,29 +1880,55 @@ object StreamPlayExtractor : StreamPlay() {
                             """(?:720p|1080p|2160p)(.*)""".toRegex().find(it.text())?.groupValues?.get(1)
                                 ?.trim()
                         val tagList = aTag.split(",")  // Changed variable name to tagList
-                        val href = it.nextElementSibling()?.select("a")?.find { anchor ->
+                        val href = it.nextElementSibling()?.select("a")?.filter { anchor ->
                             tagList.any { tag ->
                                 anchor.text().contains(tag.trim(), true)
                             }
-                        }?.attr("href") ?: ""
+                        }?.map { anchor ->
+                            anchor.attr("href")
+                        } ?: emptyList()
                         val selector =
-                            if (season == null) "p a:matches(V-Cloud|G-Direct)" else "h4:matches(0?$episode) ~ p a:matches(V-Cloud|G-Direct)"
-                        Log.d("Phisher url veg", href.toString())
+                            if (season == null) "p a:matches(V-Cloud|G-Direct)" else "h4:matches(0?$episode)"
                         if (href.isNotEmpty()) {
-                            app.get(
-                                href, interceptor = wpRedisInterceptor
-                            ).document.select("div.entry-content > $selector").first()?.let { sources ->
-                                Log.d("Phisher url selector", selector.toString())
-                                Log.d("Phisher url sources", sources.toString())
-                                val server = sources.attr("href")
-                                loadCustomTagExtractor(
-                                    tags,
-                                    server,
-                                    "$api/",
-                                    subtitleCallback,
-                                    callback,
-                                    getIndexQuality(it.text())
-                                )
+                            href.amap { url ->
+                            if (season==null)
+                            {
+                                app.get(
+                                    url, interceptor = wpRedisInterceptor
+                                ).document.select("div.entry-content > $selector").map { sources ->
+                                    val server = sources.attr("href")
+                                    loadSourceNameExtractor(
+                                        "V-Cloud",
+                                        server,
+                                        "$api/",
+                                        subtitleCallback,
+                                        callback,
+                                        getIndexQuality(sources.text())
+                                    )
+                                }
+                            }
+                            else
+                            {
+                                app.get(url, interceptor = wpRedisInterceptor).document.select("div.entry-content > $selector")
+                                    .forEach { h4Element ->
+                                        var sibling = h4Element.nextElementSibling()
+                                        while (sibling != null && sibling.tagName() == "p") {
+                                            sibling.select("a:matches(V-Cloud|G-Direct)").forEach { sources ->
+                                                val server = sources.attr("href")
+                                                Log.d("Phisher href veg", tags ?:"")
+                                                loadSourceNameExtractor(
+                                                    "V-Cloud",
+                                                    server,
+                                                    "$api/",
+                                                    subtitleCallback,
+                                                    callback,
+                                                    getIndexQuality(sources.text())
+                                                )
+                                            }
+                                            sibling = sibling.nextElementSibling()
+                                        }
+                                    }
+                             }
                             }
                         }
                     }
@@ -2447,6 +2496,30 @@ object StreamPlayExtractor : StreamPlay() {
         }
 
 
+    }
+    //only sub
+    suspend fun invokewhvx(
+        imdbId: String? = null,
+        season: Int? = null,
+        episode: Int? = null,
+        subtitleCallback: (SubtitleFile) -> Unit,
+    ) {
+        val subUrl = if (season == null) {
+            "$Whvx_API/search?id=$imdbId"
+        } else {
+            "$Whvx_API/search?id=$imdbId&season=$season&episode=$episode"
+        }
+        val jsonResponse: String = app.get(subUrl).toString()
+        val type: Type = object : TypeToken<List<whvxSubResponses2>>() {}.type
+        val subResponses: List<whvxSubResponses2> = Gson().fromJson(jsonResponse, type)
+        subResponses.map { sub ->
+            subtitleCallback.invoke(
+                SubtitleFile(
+                    sub.languageName,
+                    fixUrl(sub.url)
+                )
+            )
+        }
     }
 
     suspend fun invokeShinobiMovies(
@@ -3411,9 +3484,9 @@ object StreamPlayExtractor : StreamPlay() {
     ) {
         val fixtitle = title?.substringBefore("-")?.substringBefore(":")?.replace("&", " ")
         val searchtitle = title?.substringBefore("-").createSlug()
-        //Log.d("Phisher bolly", "$bollyflixAPI/search/$fixtitle")
+        Log.d("Phisher bolly", "$bollyflixAPI/search/$fixtitle")
         var res1 =
-            app.get("$bollyflixAPI/search/$fixtitle $year").document.select("#content_box article")
+            app.get("$bollyflixAPI/search/$fixtitle $year", interceptor = wpRedisInterceptor).document.select("#content_box article")
                 .toString()
         val hrefpattern =
             Regex("""(?i)<article[^>]*>\s*<a\s+href="([^"]*\b$searchtitle\b[^"]*)""").find(res1)?.groupValues?.get(
