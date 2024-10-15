@@ -1157,13 +1157,14 @@ object StreamPlayExtractor : StreamPlay() {
             .parsedSafe<MALSyncResponses>()?.sites
         Log.d("Phisher", malsync.toString())
         val zoroIds = malsync?.zoro?.keys?.map { it }
-        val zoroname = malsync?.nineAnime?.firstNotNullOf { it.value["title"] }?.replace(":"," ")
+        val TMDBdate=date?.substringBefore("-")
+        //val zoroname = malsync?.nineAnime?.firstNotNullOf { it.value["title"] }?.replace(":"," ")
         val zorotitle = malsync?.zoro?.firstNotNullOf { it.value["title"] }?.replace(":"," ")
         //val aniwaveId = malsync?.nineAnime?.firstNotNullOf { it.value["url"] }
         val animepahe = malsync?.animepahe?.firstNotNullOf { it.value["url"] }
         val animepahetitle = malsync?.animepahe?.firstNotNullOf { it.value["title"] }
         val year=airedDate?.substringBefore("-")
-        Log.d("Phisher", Season)
+        Log.d("Phisher", "$Season $zorotitle $episode $year $airedDate $date")
         argamap(
             {
                 invokeAnimetosho(malId, season, episode, subtitleCallback, callback)
@@ -1181,7 +1182,7 @@ object StreamPlayExtractor : StreamPlay() {
                 invokeAnimepahe(animepahe, episode, subtitleCallback, callback)
             },
             {
-                invokeAnichi(zorotitle,Season,year, episode, subtitleCallback, callback)
+                invokeAnichi(zorotitle,Season,TMDBdate, episode, subtitleCallback, callback)
             },
             {
                 invokeAnitaku(zorotitle,Season,year, episode, subtitleCallback, callback)
@@ -1213,59 +1214,55 @@ object StreamPlayExtractor : StreamPlay() {
             }
             val query="""$api?variables={"search":{"types":["$type"],"year":$year,"season":"$season","query":"$name"},"limit":26,"page":1,"translationType":"sub","countryOrigin":"ALL"}&extensions={"persistedQuery":{"version":1,"sha256Hash":"$queryhash"}}"""
             val response= app.get(query, referer = privatereferer).parsedSafe<Anichi>()?.data?.shows?.edges
-        val tes= app.get(query, referer = privatereferer)
-        Log.d("Phisher Anichi", query.toString())
-        Log.d("Phisher Anichi", response.toString())
-        Log.d("Phisher Anichi", tes.toString())
+        Log.d("Phisher Anichi response", response.toString())
         if (response!=null) {
             val id = response.apmap {
                 it.id
             }.firstOrNull()
-            if (id!=null) {
-                val langType = listOf("sub", "dub")
-                for (i in langType) {
-                    val epData =
-                        """$api?variables={"showId":"$id","translationType":"$i","episodeString":"$episode"}&extensions={"persistedQuery":{"version":1,"sha256Hash":"$ephash"}}"""
-                    val eplinks = app.get(epData, referer = privatereferer)
-                        .parsedSafe<AnichiEP>()?.data?.episode?.sourceUrls
-                    eplinks?.apmap { source ->
-                        safeApiCall {
-                            val sourceUrl=source.sourceUrl
-                            val downloadUrl= source.downloads?.downloadUrl ?:""
-                            if (downloadUrl.contains("blog.allanime.day")) {
-                                if (downloadUrl.isNotEmpty()) {
-                                    val downloadid=downloadUrl.substringAfter("id=")
-                                    val sourcename=downloadUrl.getHost()
-                                    app.get("https://allanime.day/apivtwo/clock.json?id=$downloadid").parsedSafe<AnichiDownload>()?.links?.amap {
-                                        val href=it.link
-                                        Log.d("Phisher Blog:", href.toString())
-                                        loadNameExtractor(
-                                            "Anichi [${i.uppercase()}] [$sourcename]",
-                                            href,
-                                            "",
-                                            subtitleCallback,
-                                            callback,
-                                            Qualities.P1080.value
-                                        )
-                                    }
-                                } else {
-                                    Log.d("Error:", "Not Found")
-                                }
-                            } else {
-                                if (sourceUrl.startsWith("http")) {
-                                    val sourcename=sourceUrl.getHost()
-                                    Log.d("Phisher source","$sourcename $sourceUrl")
-                                    loadCustomExtractor(
+            Log.d("Phisher Anichi id", id.toString())
+            val langType = listOf("sub", "dub")
+            for (i in langType) {
+                val epData =
+                    """$api?variables={"showId":"$id","translationType":"$i","episodeString":"$episode"}&extensions={"persistedQuery":{"version":1,"sha256Hash":"$ephash"}}"""
+                val eplinks = app.get(epData, referer = privatereferer)
+                    .parsedSafe<AnichiEP>()?.data?.episode?.sourceUrls
+                eplinks?.apmap { source ->
+                    safeApiCall {
+                        val sourceUrl=source.sourceUrl
+                        val downloadUrl= source.downloads?.downloadUrl ?:""
+                        if (downloadUrl.contains("blog.allanime.day")) {
+                            if (downloadUrl.isNotEmpty()) {
+                                val downloadid=downloadUrl.substringAfter("id=")
+                                val sourcename=downloadUrl.getHost()
+                                app.get("https://allanime.day/apivtwo/clock.json?id=$downloadid").parsedSafe<AnichiDownload>()?.links?.amap {
+                                    val href=it.link
+                                    Log.d("Phisher Blog:", href.toString())
+                                    loadNameExtractor(
                                         "Anichi [${i.uppercase()}] [$sourcename]",
-                                        sourceUrl
-                                            ?: "",
+                                        href,
                                         "",
                                         subtitleCallback,
                                         callback,
+                                        Qualities.P1080.value
                                     )
-                                } else {
-                                    Log.d("Error:", "Not Found")
                                 }
+                            } else {
+                                Log.d("Error:", "Not Found")
+                            }
+                        } else {
+                            if (sourceUrl.startsWith("http")) {
+                                val sourcename=sourceUrl.getHost()
+                                Log.d("Phisher source","$sourcename $sourceUrl")
+                                loadCustomExtractor(
+                                    "Anichi [${i.uppercase()}] [$sourcename]",
+                                    sourceUrl
+                                        ?: "",
+                                    "",
+                                    subtitleCallback,
+                                    callback,
+                                )
+                            } else {
+                                Log.d("Error:", "Not Found")
                             }
                         }
                     }
@@ -1846,10 +1843,9 @@ object StreamPlayExtractor : StreamPlay() {
         val url = if (season == null) {
             "$api/search/$fixtitle $year"
         } else {
-            "$api/search/$fixtitle season $season $year"
+            "$api/search/$fixtitle season $season"
         }
         val domain= api.substringAfter("//").substringBefore(".")
-        Log.d("Phisher url veg", fixtitle.toString())
         app.get(url, interceptor = cfInterceptor).document.select("#main-content article")
             .filter { element ->
                 element.text().contains(
@@ -1857,13 +1853,14 @@ object StreamPlayExtractor : StreamPlay() {
                 )
             }
             .amap {
+                Log.d("Phisher url veg", it.toString())
                 val hrefpattern =
                     Regex("""(?i)<a\s+href="([^"]+)"[^>]*?>[^<]*?\b($fixtitle)\b[^<]*?""").find(
                         it.toString()
                     )?.groupValues?.get(1)
+                Log.d("Phisher url veg", hrefpattern.toString())
                 if (hrefpattern!=null) {
                     val res = hrefpattern.let { app.get(it).document }
-                    Log.d("Phisher url veg", hrefpattern.toString())
                     val hTag = if (season == null) "h5" else "h3,h5"
                     val aTag =
                         if (season == null) "Download Now" else "V-Cloud,Download Now,G-Direct,Episode Links"
@@ -1871,13 +1868,14 @@ object StreamPlayExtractor : StreamPlay() {
                     val entries =
                         res.select("div.entry-content > $hTag:matches((?i)$sTag.*(720p|1080p|2160p))")
                             .filter { element ->
-                                !element.text().contains("Series", true) &&
+                                !element.text().contains("Series Info", true) &&
                                         !element.text().contains("Zip", true) &&
                                         !element.text().contains("[Complete]", true) &&
                                         !element.text().contains("480p, 720p, 1080p", true) &&
                                         !element.text().contains(domain, true) &&
-                                        element.text().matches("(?i).*($sTag).*".toRegex())
+                                element.text().matches("(?i).*($sTag).*".toRegex())
                             }
+                    Log.d("Phisher url entries", entries.toString())
                     entries.amap { it ->
                         val tags =
                             """(?:720p|1080p|2160p)(.*)""".toRegex().find(it.text())?.groupValues?.get(1)
@@ -1890,8 +1888,10 @@ object StreamPlayExtractor : StreamPlay() {
                         }?.map { anchor ->
                             anchor.attr("href")
                         } ?: emptyList()
+                        Log.d("Phisher url entries", href.toString())
                         val selector =
                             if (season == null) "p a:matches(V-Cloud|G-Direct)" else "h4:matches(0?$episode)"
+                        Log.d("Phisher url veg", href.toString())
                         if (href.isNotEmpty()) {
                             href.amap { url ->
                             if (season==null)
