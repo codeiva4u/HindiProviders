@@ -2,9 +2,12 @@ package com.kissasian
 
 import android.util.Log
 import com.lagradost.cloudstream3.*
+import com.lagradost.cloudstream3.LoadResponse.Companion.addActors
+import com.lagradost.cloudstream3.extractors.helper.GogoHelper
 import com.lagradost.cloudstream3.utils.AppUtils.toJson
 import com.lagradost.cloudstream3.utils.AppUtils.tryParseJson
 import com.lagradost.cloudstream3.utils.ExtractorLink
+import com.lagradost.cloudstream3.utils.httpsify
 import com.lagradost.cloudstream3.utils.loadExtractor
 import org.jsoup.nodes.Element
 
@@ -14,27 +17,18 @@ class Dramacool : MainAPI() {
     )
     override var lang = "en"
 
-    override var mainUrl = "https://dramacool.city"
+    override var mainUrl = "https://kdramaweb.com"
     override var name = "Dramacool"
 
     override val hasMainPage = true
 
     override val mainPage = mainPageOf(
-        "${mainUrl}/dramas/" to "Drama",
-        "${mainUrl}/movies/" to "Movies",
-        "${mainUrl}/k-shows/" to "KShow",
-        "${mainUrl}/most-watched/" to "Popular Dramas",
+        "popular-drama" to "Popular Drama",
     )
 
     override suspend fun getMainPage(page: Int, request: MainPageRequest): HomePageResponse {
-        val url = if (page == 1) {
-            request.data
-        } else {
-            "${request.data}/page/$page/"
-        }
-
-        val document = app.get(url, referer = "$mainUrl/").document
-        val items = document.select(".box > li").mapNotNull {
+        val document = app.get("$mainUrl/${request.data}/page/$page").document
+        val items = document.select("#drama div.card").mapNotNull {
             it.toSearchResult()
         }
 
@@ -42,7 +36,7 @@ class Dramacool : MainAPI() {
     }
 
     private fun Element.toSearchResult(): SearchResponse? {
-        val title = selectFirst("h3")?.text()?.trim() ?: return null
+        val title = selectFirst("a")?.attr("title") ?: return null
         val href = fixUrlNull(selectFirst("a")?.attr("href")) ?: return null
         val posterUrl = fixUrlNull(selectFirst("img")?.attr("src"))
 
@@ -72,19 +66,22 @@ class Dramacool : MainAPI() {
         val d = tryParseJson<LoadUrl>(url) ?: return null
         val document = app.get(d.url, referer = "$mainUrl/").document
         val title = document.selectFirst("h1")?.text()?.trim() ?: return null
-
-        val episodes = document.select("#all-episodes ul li").mapNotNull { el ->
-            el.select("a").mapNotNull {
-                val href = fixUrl(it.attr("data-source"))
-                newEpisode(href) {
-                    name = it.text().trim()
-                }
-            }
-        }.flatten()
-
+        val actors = document.select("div.slider div.img-container").map {
+            Actor(
+                it.select("div.bottom-right").text(),
+                it.select("img").attr("src")
+            )
+        }
+        val episodes = document.select("div.epdiv").mapNotNull { el ->
+            val name=el.selectFirst("a")?.text()?.substringAfter("Episode")?.trim()
+            val rawhref=el.selectFirst("a")?.attr("href") ?:""
+            val href="$mainUrl/$rawhref"
+            Episode(href, "Episode $name")
+        }.reversed()
 
         return newTvSeriesLoadResponse(title, url, TvType.TvSeries, episodes) {
             posterUrl = d.posterUrl
+            addActors(actors)
         }
     }
 
@@ -94,16 +91,37 @@ class Dramacool : MainAPI() {
         subtitleCallback: (SubtitleFile) -> Unit,
         callback: (ExtractorLink) -> Unit
     ): Boolean {
-        Log.d("Phisher",data)
-        val id = data.substringAfter("id=")
-        val json = app.get("https://dramasb.com/stream?id=$id", verify = false).text
-        val linksRegex = "\"link\":\"(.*?)\"".toRegex()
-        val servers = linksRegex.findAll(json).map {
-            it.groupValues[1].replace("\\/", "/")
-        }.toList()
-        servers.forEach {
-            loadExtractor(it, subtitleCallback, callback)
-        }
+        val document = app.get(data).document
+        Log.d("Phisher",data.toString())
+        val server = document.selectFirst("#load-iframe")?.attr("onclick")?.substringAfter("playThis(\"")?.substringBefore("\")")
+        val iframe = app.get(httpsify(server ?: return false))
+        val iframeDoc = iframe.document
+        argamap({
+            iframeDoc.select(".list-server-items > .linkserver")
+                .forEach { element ->
+                    Log.d("Phisher",element.toString())
+                    val status = element.attr("data-status") ?: return@forEach
+                    if (status != "1") return@forEach
+                    val extractorData = element.attr("data-video") ?: return@forEach
+                    loadExtractor(extractorData, iframe.url, subtitleCallback, callback)
+                }
+        }, {
+            val iv = "9262859232435825"
+            val secretKey = "93422192433952489752342908585752"
+            val secretDecryptKey = secretKey
+            GogoHelper.extractVidstream(
+                iframe.url,
+                this.name,
+                callback,
+                iv,
+                secretKey,
+                secretDecryptKey,
+                isUsingAdaptiveKeys = false,
+                isUsingAdaptiveData = true,
+                iframeDocument = iframeDoc
+            )
+        })
+
         return true
     }
 

@@ -1,12 +1,13 @@
-version = 2
+// use an integer for version numbers
+version = 1
 
 
 cloudstream {
     language = "en"
     // All of these properties are optional, you can safely remove them
 
-    description = "One Pace"
-    authors = listOf("KillerDogeEmpire,Phisher98")
+//    description = "Lorem Ipsum"
+    authors = listOf("Phisher98")
 
     /**
      * Status int as the following:
@@ -17,7 +18,8 @@ cloudstream {
      * */
     status = 1 // will be 3 if unspecified
     tvTypes = listOf(
-        "Anime"
+        "AsianDrama",
     )
-    iconUrl = "https://raw.githubusercontent.com/Rowdy-Avocado/Rowdycado-Extensions/master/logos/onepace.png"
+
+    iconUrl = "https://mir-s3-cdn-cf.behance.net/projects/404/5488d0187090001.Y3JvcCw2MDAwLDQ2OTMsMCw2NTM.jpg"
 }
