@@ -15,7 +15,6 @@ import com.Phisher98.StreamPlayExtractor.invokeMoviesmod
 import com.Phisher98.StreamPlayExtractor.invokeDahmerMovies
 import com.Phisher98.StreamPlayExtractor.invokeDoomovies
 import com.Phisher98.StreamPlayExtractor.invokeDotmovies
-import com.Phisher98.StreamPlayExtractor.invokeDramacool
 import com.Phisher98.StreamPlayExtractor.invokeDramaday
 import com.Phisher98.StreamPlayExtractor.invokeDreamfilm
 import com.Phisher98.StreamPlayExtractor.invokeDumpStream
@@ -54,7 +53,6 @@ import com.Phisher98.StreamPlayExtractor.invokeWatchCartoon
 import com.Phisher98.StreamPlayExtractor.invokeWatchsomuch
 import com.Phisher98.StreamPlayExtractor.invokeZoechip
 import com.Phisher98.StreamPlayExtractor.invokeZshow
-import com.Phisher98.StreamPlayExtractor.invokekissasian
 import com.Phisher98.StreamPlayExtractor.invokePlaydesi
 import com.Phisher98.StreamPlayExtractor.invokeBollyflix
 import com.Phisher98.StreamPlayExtractor.invokeDramaCool
@@ -170,7 +168,7 @@ open class StreamPlay : TmdbProvider() {
         const val topmoviesAPI = "https://topmovies.mov"
         const val MoviesmodAPI= "https://moviesmod.day"
         const val hdmovies4uAPI = "https://hdmovies4u.boston"
-        const val vegaMoviesAPI = "https://vegamovies.foo"
+        const val vegaMoviesAPI = "https://vegamovies.si"
         const val dotmoviesAPI = "https://luxmovies.shop"
         const val tvMoviesAPI = "https://www.tvseriesnmovies.com"
         const val dahmerMoviesAPI="https://a.datadiff.us.kg"
@@ -211,12 +209,17 @@ open class StreamPlay : TmdbProvider() {
         "$tmdbAPI/discover/tv?api_key=$apiKey&with_networks=49" to "HBO",
         "$tmdbAPI/discover/tv?api_key=$apiKey&with_networks=4330" to "Paramount+",
         "$tmdbAPI/discover/tv?api_key=$apiKey&with_networks=3353" to "Peacock",
+        "$tmdbAPI/discover/movie?api_key=$apiKey&language=en-US&page=1&sort_by=popularity.desc&with_origin_country=IN" to "Indian Movies",
+        "$tmdbAPI/discover/tv?api_key=$apiKey&with_networks=4008" to "JioCinema",
+        "$tmdbAPI/discover/tv?api_key=$apiKey&with_networks=5920" to "Amazon MiniTV",
+        "$tmdbAPI/discover/tv?api_key=$apiKey&with_networks=1112" to "Crunchyroll",
         "$tmdbAPI/movie/top_rated?api_key=$apiKey&region=US" to "Top Rated Movies",
         "$tmdbAPI/tv/top_rated?api_key=$apiKey&region=US" to "Top Rated TV Shows",
-        "$tmdbAPI/movie/upcoming?api_key=$apiKey&region=US" to "Upcoming Movies",
+        //"$tmdbAPI/movie/upcoming?api_key=$apiKey&region=US" to "Upcoming Movies",
         "$tmdbAPI/discover/tv?api_key=$apiKey&with_original_language=ko" to "Korean Shows",
         "$tmdbAPI/discover/tv?api_key=$apiKey&with_keywords=210024|222243&sort_by=popularity.desc&air_date.lte=${getDate().today}&air_date.gte=${getDate().today}" to "Airing Today Anime",
         "$tmdbAPI/discover/tv?api_key=$apiKey&with_keywords=210024|222243&sort_by=popularity.desc&air_date.lte=${getDate().nextWeek}&air_date.gte=${getDate().today}" to "On The Air Anime",
+        "$tmdbAPI/discover/tv?api_key=$apiKey&with_genres=16&sort_by=air_date.desc&air_date.lte=${getDate().nextWeek}&air_date.gte=${getDate().today}&language=jp" to "Recently Updated Anime",
         "$tmdbAPI/discover/tv?api_key=$apiKey&with_keywords=210024|222243" to "Anime",
         "$tmdbAPI/discover/movie?api_key=$apiKey&with_keywords=210024|222243" to "Anime Movies",
     )
@@ -559,16 +562,6 @@ open class StreamPlay : TmdbProvider() {
                     //         subtitleCallback,
                     //         callback
                     //    )
-                },
-                {
-                    if (res.isAsian) invokeDramacool(
-                        res.title,
-                        res.season,
-                        res.year,
-                        res.episode,
-                        subtitleCallback,
-                        callback
-                    )
                 },
                 {
                     if (!res.isAnime) invokeGhostx(
