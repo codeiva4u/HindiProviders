@@ -669,11 +669,6 @@ suspend fun bypassHrefli(url: String): String? {
     return fixUrl(path, getBaseUrl(driveUrl))
 }
 
-suspend fun bypasstopoviesunblocked(url: String): String {
-    val driveLink = bypassHrefli(url) ?:""
-    return driveLink
-}
-
 suspend fun getTvMoviesServer(url: String, season: Int?, episode: Int?): Pair<String, String?>? {
 
     val req = app.get(url)
@@ -1729,4 +1724,8 @@ fun CatxorDecrypt(binary: String, key: String): String {
 fun CatdecryptHexWithKey(hex: String, key: String): String {
     val binary = CathexToBinary(hex)
     return CatxorDecrypt(binary, key)
+}
+
+fun getfullURL(url: String,mainUrl:String): String {
+    return "$mainUrl$url"
 }
