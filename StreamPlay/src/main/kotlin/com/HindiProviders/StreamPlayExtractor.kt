@@ -2,6 +2,8 @@ package com.Phisher98
 
 import android.annotation.SuppressLint
 import android.util.Log
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import com.fasterxml.jackson.module.kotlin.readValue
 import com.lagradost.cloudstream3.*
 import com.lagradost.cloudstream3.APIHolder.unixTimeMS
 import com.lagradost.cloudstream3.utils.*
@@ -1977,6 +1979,106 @@ object StreamPlayExtractor : StreamPlay() {
             }
     }
 
+    suspend fun invokeExtramovies(
+        imdbId: String? = null,
+        title: String? = null,
+        year: Int? = null,
+        season: Int? = null,
+        lastSeason: Int? = null,
+        episode: Int? = null,
+        subtitleCallback: (SubtitleFile) -> Unit,
+        callback: (ExtractorLink) -> Unit
+    ) {
+        val url="$Extramovies/search/$imdbId"
+        app.get(url).document.select("h3 a").amap {
+                val link=it.attr("href")
+                app.get(link).document.select("div.entry-content a.maxbutton-8").map { it ->
+                    val href=it.select("a").attr("href")
+                    loadSourceNameExtractor(
+                        "ExtraMovies",
+                        href,
+                        "",
+                        subtitleCallback,
+                        callback,
+                    )
+            }
+        }
+    }
+
+    suspend fun invokeVidbinge(
+        imdbId: String? = null,
+        tmdbId: Int?=null,
+        title: String? = null,
+        year: Int? = null,
+        season: Int? = null,
+        lastSeason: Int? = null,
+        episode: Int? = null,
+        subtitleCallback: (SubtitleFile) -> Unit,
+        callback: (ExtractorLink) -> Unit
+    ) {
+        val type=if (season==null) "movie" else "tv"
+        val servers = listOf("astra", "orion")
+        for(source in servers) {
+            val token= app.get(BuildConfig.WhvxT).parsedSafe<Vidbinge>()?.token ?:""
+            val s= season ?: ""
+            val e= episode ?: ""
+            val query="""{"title":"$title","imdbId":"$imdbId","tmdbId":"$tmdbId","type":"$type","season":"$s","episode":"$e","releaseYear":"$year"}"""
+            val encodedQuery = encodeQuery(query)
+            val encodedToken = encodeQuery(token)
+            val originalUrl = "$WhvxAPI/search?query=$encodedQuery&provider=$source&token=$encodedToken"
+            Log.d("Phisher", originalUrl)
+            val headers = mapOf(
+                "accept" to "*/*",
+                "origin" to "https://www.vidbinge.com",
+                "user-agent" to "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"
+            )
+            val oneurl= app.get(originalUrl, headers=headers, timeout = 50L).parsedSafe<Vidbingesources>()?.url
+            oneurl?.let {
+                val encodedit=encodeQuery(it)
+                Log.d("Phisher", encodedit)
+                app.get("$WhvxAPI/source?resourceId=$encodedit&provider=$source",headers=headers).parsedSafe<Vidbingeplaylist>()?.stream?.map {
+                    val playlist=it.playlist
+                    callback.invoke(
+                        ExtractorLink(
+                            "Vidbinge $source", "Vidbinge $source", playlist
+                            , "", Qualities.P1080.value, INFER_TYPE
+                        )
+                    )
+                }
+            }
+        }
+    }
+
+    suspend fun invokeSharmaflix(
+        title: String? = null,
+        year: Int? = null,
+        season: Int? = null,
+        episode: Int? = null,
+        subtitleCallback: (SubtitleFile) -> Unit,
+        callback: (ExtractorLink) -> Unit
+    ) {
+        val searchtitle=encodeQuery(title ?:"").replace("+", "%20")
+        val url="$Sharmaflix/searchContent/$searchtitle/0"
+        val headers= mapOf("x-api-key" to BuildConfig.SharmaflixApikey,"User-Agent" to "Dalvik/2.1.0 (Linux; U; Android 13; Subsystem for Android(TM) Build/TQ3A.230901.001)")
+        val json= app.get(url, headers = headers).toString().toJson()
+        val objectMapper = jacksonObjectMapper()
+        val parsedResponse: SharmaFlixRoot = objectMapper.readValue(json)
+        parsedResponse.forEach { root ->
+            val id=root.id
+            val movieurl="$Sharmaflix/getMoviePlayLinks/$id/0"
+            val hrefresponse= app.get(movieurl, headers = headers).toString().toJson()
+            val hrefparser: SharmaFlixLinks = objectMapper.readValue(hrefresponse)
+            hrefparser.forEach {
+                callback.invoke(
+                    ExtractorLink(
+                        "Sharmaflix", "Sharmaflix", it.url
+                            ?: return, "", Qualities.P1080.value, INFER_TYPE
+                    )
+                )
+            }
+        }
+    }
+
     suspend fun invokeVidSrc(
         id: Int? = null,
         season: Int? = null,
@@ -3240,9 +3342,10 @@ object StreamPlayExtractor : StreamPlay() {
         episode: Int? = null,
         callback: (ExtractorLink) -> Unit,
     ) {
-        val doc = app.get("$allmovielandAPI/5499-love-lies-bleeding.html").toString()
-        val domainRegex = Regex("const AwsIndStreamDomain.*'(.*)';")
-        val host = domainRegex.find(doc)?.groups?.get(1)?.value.toString()
+        //val doc = app.get("$allmovielandAPI/5499-love-lies-bleeding.html").toString()
+        //val domainRegex = Regex("const AwsIndStreamDomain.*'(.*)';")
+        //var host = domainRegex.find(doc)?.groups?.get(1)?.value
+        var host="https://keels313ale.com"
         val res = app.get(
             "$host/play/$imdbId",
             referer = "$allmovielandAPI/"
@@ -3250,6 +3353,7 @@ object StreamPlayExtractor : StreamPlay() {
             ?.substringAfter("{")
             ?.substringBefore(";")?.substringBefore(")")
         val json = tryParseJson<AllMovielandPlaylist>("{${res ?: return}")
+        Log.d("Phisher", json.toString())
         val headers = mapOf("X-CSRF-TOKEN" to "${json?.key}")
         val serverRes = app.get(
             fixUrl(

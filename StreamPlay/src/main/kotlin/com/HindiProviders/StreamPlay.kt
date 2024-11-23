@@ -56,9 +56,12 @@ import com.Phisher98.StreamPlayExtractor.invokePlaydesi
 import com.Phisher98.StreamPlayExtractor.invokeBollyflix
 import com.Phisher98.StreamPlayExtractor.invokeBollyflixvip
 import com.Phisher98.StreamPlayExtractor.invokeDramaCool
+import com.Phisher98.StreamPlayExtractor.invokeExtramovies
 import com.Phisher98.StreamPlayExtractor.invokeFlixAPI
+import com.Phisher98.StreamPlayExtractor.invokeVidbinge
 import com.Phisher98.StreamPlayExtractor.invokemovies4u
 import com.Phisher98.StreamPlayExtractor.invokenyaa
+import com.Phisher98.StreamPlayExtractor.invokeSharmaflix
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.lagradost.cloudstream3.Actor
 import com.lagradost.cloudstream3.ActorData
@@ -163,9 +166,9 @@ open class StreamPlay : TmdbProvider() {
         const val fdMoviesAPI = "https://freedrivemovie.com"
         const val uhdmoviesAPI = "https://uhdmovies.icu"
         const val topmoviesAPI = "https://topmovies.icu"
-        const val MoviesmodAPI= "https://moviesmod.bid"
+        const val MoviesmodAPI= "https://moviesmod.rip"
         const val hdmovies4uAPI = "https://hdmovies4u.boston"
-        const val vegaMoviesAPI = "https://vegamovies.si"
+        const val vegaMoviesAPI = "https://vegamovies.ps"
         const val dotmoviesAPI = "https://luxmovies.live"
         const val tvMoviesAPI = "https://www.tvseriesnmovies.com"
         const val dahmerMoviesAPI="https://a.datadiff.us.kg"
@@ -176,9 +179,12 @@ open class StreamPlay : TmdbProvider() {
         const val animepaheAPI = "https://animepahe.ru"
         const val Catflix= "https://catflix.su"
         const val ConsumetAPI=BuildConfig.ConsumetAPI
-        const val BollyflixVIP= "https://bollyflix.fi"
+        const val BollyflixVIP= "https://bollyflix.meme"
         const val FlixAPI= BuildConfig.FlixAPI
         const val NyaaAPI="https://nyaa.land"
+        const val Extramovies="https://extramovies.poker"
+        const val WhvxAPI=BuildConfig.WhvxAPI
+        const val Sharmaflix= BuildConfig.SharmaflixApi
         fun getType(t: String?): TvType {
             return when (t) {
                 "movie" -> TvType.Movie
@@ -786,6 +792,41 @@ open class StreamPlay : TmdbProvider() {
             res.episode,
             subtitleCallback,
             callback
+        )
+    },
+    {
+         if (!res.isAnime) invokeExtramovies(
+                    res.imdbId,
+                    res.title,
+                    res.year,
+                    res.season,
+                    res.lastSeason,
+                    res.episode,
+                    subtitleCallback,
+                    callback
+                )
+    },
+    {
+                if (!res.isAnime) invokeVidbinge(
+                    res.imdbId,
+                    res.id,
+                    res.title,
+                    res.year,
+                    res.season,
+                    res.lastSeason,
+                    res.episode,
+                    subtitleCallback,
+                    callback
+                )
+    },
+    {
+        invokeSharmaflix(
+                    res.title,
+                    res.year,
+                    res.season,
+                    res.episode,
+                    subtitleCallback,
+                    callback
         )
     },
     {
