@@ -380,7 +380,7 @@ object StreamPlayExtractor : StreamPlay() {
                     !link.contains("youtube") -> {
                         loadExtractor(link, referer = apiUrl, subtitleCallback, callback)
                     }
-                    else -> ""
+                    else -> Log.d("Error","Not Found")
                 }
             }
         }
@@ -916,7 +916,7 @@ object StreamPlayExtractor : StreamPlay() {
         } else {
             "$azseriesAPI/episodes/$fixTitle-season-$season-episode-$episode"
         }
-        val res = app.get("$url", referer = azseriesAPI)
+        val res = app.get(url, referer = azseriesAPI)
             val document = res.document
             val id = document.selectFirst("#show_player_lazy")?.attr("movie-id").toString()
         val server_doc = app.post(
@@ -1166,13 +1166,14 @@ object StreamPlayExtractor : StreamPlay() {
         val zoroIds = malsync?.zoro?.keys?.map { it }
         val TMDBdate=date?.substringBefore("-")
         val zorotitle = malsync?.zoro?.firstNotNullOf { it.value["title"] }?.replace(":"," ")
-        Log.d("Phisher zoroIds", zoroIds.toString())
+        val hianimeurl=malsync?.zoro?.firstNotNullOf { it.value["url"] }
+        Log.d("Phisher zoroIds", malsync.toString())
         argamap(
             {
                 invokeAnimetosho(malId, season, episode, subtitleCallback, callback)
             },
             {
-                invokeHianime(zoroIds, episode, subtitleCallback, callback)
+                invokeHianime(zoroIds,hianimeurl, episode, subtitleCallback, callback)
             },
             {
                 val animepahetitle = malsync?.animepahe?.firstNotNullOf { it.value["title"] }
@@ -1228,9 +1229,9 @@ object StreamPlayExtractor : StreamPlay() {
             val query="""$api?variables={"search":{"types":["$type"],"year":$year,"season":"$season","query":"$name"},"limit":26,"page":1,"translationType":"sub","countryOrigin":"ALL"}&extensions={"persistedQuery":{"version":1,"sha256Hash":"$queryhash"}}"""
             val response= app.get(query, referer = privatereferer).parsedSafe<Anichi>()?.data?.shows?.edges
         if (response!=null) {
-            val id = response.apmap {
-                it.id
-            }.firstOrNull()
+            val id = response.firstOrNull {
+                it.name.contains("$name", ignoreCase = true) || it.englishName.contains("$name", ignoreCase = true)
+            }?.id
             val langType = listOf("sub", "dub")
             for (i in langType) {
                 val epData =
@@ -1345,7 +1346,7 @@ object StreamPlayExtractor : StreamPlay() {
             {
                 val response = app.get("${BuildConfig.GojoAPI}/api/anime/tiddies?provider=$source&id=$aniid&watchId=$jptitle-episode-$episode", headers = headers)
                     .parsedSafe<Gojoresponseshashh>()?.sources?.map { it.url }
-                val m3u8=response.toString()
+                val m3u8 = response?.firstOrNull() ?: ""
                 callback.invoke(
                     ExtractorLink(
                         "GojoAPI [${source.capitalize()}]",
@@ -1361,7 +1362,7 @@ object StreamPlayExtractor : StreamPlay() {
             else{
                 val response = app.get("${BuildConfig.GojoAPI}/api/anime/tiddies?provider=$source&id=$aniid&watchId=$jptitle-episode-$episode", headers = headers)
                     .parsedSafe<Gojoresponsevibe>()?.sources?.map { it.url }
-                val m3u8=response.toString()
+                val m3u8 = response?.firstOrNull() ?: ""
                 callback.invoke(
                     ExtractorLink(
                         "GojoAPI [${source.capitalize()}]",
@@ -1477,6 +1478,7 @@ object StreamPlayExtractor : StreamPlay() {
 
     private suspend fun invokeHianime(
         animeIds: List<String?>? = null,
+        url: String?,
         episode: Int? = null,
         subtitleCallback: (SubtitleFile) -> Unit,
         callback: (ExtractorLink) -> Unit
@@ -1511,6 +1513,37 @@ object StreamPlayExtractor : StreamPlay() {
                 ).parsedSafe<HianimeResponses>()?.link
                     ?: return@servers
                 val audio = if (server.third == "sub") "Raw" else "English Dub"
+                val animeEpisodeId=url?.substringAfter("to/")
+                val api="${BuildConfig.HianimeAPI}/api/v2/hianime/episode/sources?animeEpisodeId=$animeEpisodeId?ep=$episodeId&server=${server.first.lowercase()}&category=${server.third}"
+                app.get(api).parsedSafe<Hianime>()?.data?.let { data ->
+                    val m3u8Urls = data.sources.map { it.url }
+                    val m3u8 = m3u8Urls.firstOrNull()
+                    if (m3u8Urls.isNotEmpty()) {
+                        loadNameExtractor(
+                            "HiAnime ${server.first} [$audio]",
+                            m3u8 ?:"",
+                            "",
+                            subtitleCallback,
+                            callback,
+                            Qualities.P1080.value
+                        )
+                    } else {
+                        Log.w("Phisher", "No m3u8 URLs found in sources.")
+                    }
+
+                    data.tracks.amap { track ->
+                        val vtt = track.file
+                        val lang=track.label
+                        subtitleCallback.invoke(
+                            SubtitleFile(
+                                getLanguage(lang ?: return@amap),
+                                vtt
+                            )
+                        )
+                    }
+                }
+
+                /*
                 Log.d("Phisher",iframe.toString())
                 loadCustomExtractor(
                     "HiAnime ${server.first} [$audio]",
@@ -1519,6 +1552,8 @@ object StreamPlayExtractor : StreamPlay() {
                     subtitleCallback,
                     callback,
                 )
+
+                 */
             }
         }
     }
@@ -3580,10 +3615,10 @@ object StreamPlayExtractor : StreamPlay() {
         episode: Int? = null,
         callback: (ExtractorLink) -> Unit,
     ) {
-        //val doc = app.get("$allmovielandAPI/5499-love-lies-bleeding.html").toString()
-        //val domainRegex = Regex("const AwsIndStreamDomain.*'(.*)';")
-        //var host = domainRegex.find(doc)?.groups?.get(1)?.value
-        var host="https://keels313ale.com"
+        val doc = app.get("$allmovielandAPI/5499-love-lies-bleeding.html").toString()
+        val domainRegex = Regex("const AwsIndStreamDomain.*'(.*)';")
+        val host = domainRegex.find(doc)?.groups?.get(1)?.value ?:""
+        //val host="https://kioled326aps.com"
         val res = app.get(
             "$host/play/$imdbId",
             referer = "$allmovielandAPI/"
@@ -3786,7 +3821,7 @@ object StreamPlayExtractor : StreamPlay() {
         val hrefpattern =
             Regex("""(?i)<a\s+href="([^"]*\b$searchtitle\b[^"]*)"""").find(res1)?.groupValues?.get(1)
                 ?: ""
-        if (hrefpattern.isBlank()) {
+        if (hrefpattern.isNotEmpty()) {
             val document = app.get(hrefpattern).document
             if (season == null) {
                 document.select("h5 > a").amap {
