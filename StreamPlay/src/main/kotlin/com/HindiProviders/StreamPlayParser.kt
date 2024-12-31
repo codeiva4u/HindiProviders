@@ -47,13 +47,14 @@ data class Related(
     val id: String,
     val title: String,
     val poster: String,
-    val stats: EPStats,
+    val stats: MovieStats,
 )
 
-data class EPStats(
-    val year: String,
-    val duration: String,
+data class MovieStats(
+    val year: String?,
+    val duration: String?,
     val rating: String,
+    val seasons: String?,
 )
 
 
@@ -108,6 +109,15 @@ data class Episodedata(
 )
 
 
+//HinAuto
+
+typealias HinAuto = List<HinAutoRoot2>;
+
+data class HinAutoRoot2(
+    val file: String,
+    val label: String,
+    val type: String,
+)
 
 
 //Anichi
