@@ -27,7 +27,8 @@ class StreamPlayPlugin: Plugin() {
         // All providers should be added in this manner. Please don't edit the providers list directly.
         registerMainAPI(StreamPlay())
         registerMainAPI(StreamPlayLite())
-        registerMainAPI(StreamPlayTest())
+        //registerMainAPI(StreamPlayTest())
+        registerMainAPI(StreamPlayAnime())
         registerExtractorAPI(Animefever())
         registerExtractorAPI(Multimovies())
         registerExtractorAPI(MultimoviesSB())
@@ -65,7 +66,7 @@ class StreamPlayPlugin: Plugin() {
         registerExtractorAPI(StreamTape())
         registerExtractorAPI(do0od())
         registerExtractorAPI(Embedrise())
-        registerExtractorAPI(Gdmirrorbot())
+        registerExtractorAPI(GDMirrorbot())
         registerExtractorAPI(FilemoonNl())
         registerExtractorAPI(Alions())
         registerExtractorAPI(Vidmolyme())
@@ -106,5 +107,6 @@ class StreamPlayPlugin: Plugin() {
         registerExtractorAPI(bulbasaur())
         registerExtractorAPI(HubCloudink())
         registerExtractorAPI(HubCloudtel())
+        registerExtractorAPI(GDMirrorbot())
     }
 }

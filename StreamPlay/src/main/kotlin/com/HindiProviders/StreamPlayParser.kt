@@ -3,10 +3,45 @@ package com.Phisher98
 import com.fasterxml.jackson.annotation.JsonProperty
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
+//Vidsrccc
+
+data class Vidsrccc(
+    val id: String,
+    val vrf: String,
+    val timestamp: String,
+)
+
+data class Vidsrcccservers(
+    val data: List<VidsrcccDaum>,
+    val success: Boolean,
+)
+
+data class VidsrcccDaum(
+    val name: String,
+    val hash: String,
+)
+
+data class Vidsrcccm3u8(
+    val data: VidsrcccData,
+    val success: Boolean,
+)
+
+data class VidsrcccData(
+    val source: String,
+    val subtitles: List<VidsrcccSubtitle>,
+)
+
+data class VidsrcccSubtitle(
+    val kind: String,
+    val file: String,
+    val label: String,
+    val default: Boolean?,
+)
+
 
 //FlixHQAPI
 
-data class SerachFlix(
+data class SearchFlixAPI(
     val items: List<Item>,
     val pagination: Pagination,
 )
@@ -19,15 +54,41 @@ data class Item(
 )
 
 data class Stats(
-    val year: String,
-    val duration: String,
+    val seasons: String?,
     val rating: String,
+    val year: String?,
+    val duration: String?,
 )
 
 data class Pagination(
     val current: Long,
     val total: Long,
 )
+
+//SeasonResponse
+
+data class SeasonResponseFlixHQAPI(
+    val seasons: List<SeasonFlixHQAPI>,
+)
+
+data class SeasonFlixHQAPI(
+    val id: String,
+    val number: Long,
+)
+
+//EpisodeResponseFlixHQAPI
+
+
+data class EpisodeResponseFlixHQAPI(
+    val episodes: List<EpisodeFlixHQAPI>,
+)
+
+data class EpisodeFlixHQAPI(
+    val id: String,
+    val number: Long,
+    val title: String,
+)
+
 
 data class MoviedetailsResponse(
     val title: String,
@@ -339,6 +400,15 @@ data class FlickyStream(
     val url: String,
 )
 
+
+//Vidsrcsu
+
+data class Vidsrcsu(
+    @JsonProperty("m3u8_url")
+    val m3u8Url: String,
+    val language: String,
+)
+
 //WyZIESUBAPI
 
 data class WyZIESUB(
@@ -582,18 +652,27 @@ data class CrunchyrollSourcesResponses(
 
 data class Hianime(
     val success: Boolean,
-    val data: HianimeData,
+    val results: HianimeResults,
 )
 
-data class HianimeData(
+data class HianimeResults(
+    val streamingLink: HianimeStreamingLink,
+    val servers: List<HianimeServer>,
+)
+
+data class HianimeStreamingLink(
+    val id: String,
+    val type: String,
+    val link: HianimeLink,
     val tracks: List<HianimeTrack>,
     val intro: Intro,
     val outro: Outro,
-    val sources: List<HianimeSource>,
-    @JsonProperty("anilistID")
-    val anilistId: Long,
-    @JsonProperty("malID")
-    val malId: Long,
+    val server: String,
+)
+
+data class HianimeLink(
+    val file: String,
+    val type: String,
 )
 
 data class HianimeTrack(
@@ -613,10 +692,15 @@ data class Outro(
     val end: Long,
 )
 
-data class HianimeSource(
-    val url: String,
+data class HianimeServer(
     val type: String,
+    @JsonProperty("data_id")
+    val dataId: String,
+    @JsonProperty("server_id")
+    val serverId: String,
+    val serverName: String,
 )
+
 
 //anime animepahe parser
 
@@ -1163,4 +1247,156 @@ data class TheyallsayflixSubtitle(
     @JsonProperty("download_link")
     val downloadLink: String,
 )
+
+//AnimeNexus
+
+data class AnimeNexus(
+    val data: List<AnimeNexusDaum>,
+    val links: AnimeNexusLinks,
+    val meta: AnimeNexusMeta,
+)
+
+data class AnimeNexusDaum(
+    val poster: AnimeNexusPoster,
+    val broadcast: Any?,
+    val description: String,
+    @JsonProperty("end_date")
+    val endDate: String,
+    val genres: List<AnimeNexusGenre>,
+    @JsonProperty("episode_count")
+    val episodeCount: Long,
+    val id: String,
+    val name: String,
+    @JsonProperty("name_alt")
+    val nameAlt: String,
+    @JsonProperty("parental_rating")
+    val parentalRating: String,
+    @JsonProperty("release_date")
+    val releaseDate: String,
+    val slug: String,
+    val status: String,
+    val type: String,
+)
+
+data class AnimeNexusPoster(
+    val original: String,
+    val medium: String,
+    val small: String,
+)
+
+data class AnimeNexusGenre(
+    val name: String,
+    val id: String,
+    val code: String,
+)
+
+data class AnimeNexusLinks(
+    val first: String,
+    val last: String,
+    val prev: Any?,
+    val next: Any?,
+)
+
+data class AnimeNexusMeta(
+    @JsonProperty("current_page")
+    val currentPage: Long,
+    val from: Long,
+    @JsonProperty("last_page")
+    val lastPage: Long,
+    @JsonProperty("per_page")
+    val perPage: Long,
+    val to: Long,
+    val total: Long,
+)
+
+
+data class AnimeNexusEp(
+    val data: List<AnimeNexusEpDaum>,
+    val links: AnimeNexusEpLinks,
+    val meta: AnimeNexusEpMeta,
+)
+
+data class AnimeNexusEpDaum(
+    val id: String,
+    val title: Any?,
+    val slug: String,
+    val number: Int,
+    val duration: Long,
+    val image: AnimeNexusEpImage,
+    @JsonProperty("video_meta")
+    val videoMeta: AnimeNexusEpVideoMeta,
+    @JsonProperty("is_filler")
+    val isFiller: Long,
+    @JsonProperty("is_recap")
+    val isRecap: Long,
+)
+
+data class AnimeNexusEpImage(
+    val id: String,
+    @JsonProperty("disk_name")
+    val diskName: String,
+    @JsonProperty("file_size")
+    val fileSize: Long,
+    @JsonProperty("content_type")
+    val contentType: String,
+    val title: Any?,
+    val description: Any?,
+    val field: String,
+    @JsonProperty("sort_order")
+    val sortOrder: Long,
+    @JsonProperty("created_at")
+    val createdAt: String,
+    @JsonProperty("updated_at")
+    val updatedAt: String,
+    val extension: String,
+    val path: String,
+)
+
+data class AnimeNexusEpVideoMeta(
+    @JsonProperty("subtitle_languages")
+    val subtitleLanguages: List<String>,
+    @JsonProperty("audio_languages")
+    val audioLanguages: List<String>,
+    val status: String,
+)
+
+data class AnimeNexusEpLinks(
+    val first: String,
+    val last: String,
+    val prev: Any?,
+    val next: Any?,
+)
+
+data class AnimeNexusEpMeta(
+    @JsonProperty("current_page")
+    val currentPage: Long,
+    val from: Long,
+    @JsonProperty("last_page")
+    val lastPage: Long,
+    @JsonProperty("per_page")
+    val perPage: Long,
+    val to: Long,
+    val total: Long,
+)
+
+data class RiveStreamSource(
+    val data: List<String>
+)
+
+data class RiveStreamResponse(
+    val data: RiveStreamData,
+)
+
+data class RiveStreamData(
+    val sources: List<RiveStreamSourceData>,
+)
+
+data class RiveStreamSourceData(
+    val quality: String,
+    val url: String,
+    val source: String,
+    val format: String,
+)
+
+
 

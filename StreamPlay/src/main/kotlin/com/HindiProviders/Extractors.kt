@@ -1,18 +1,21 @@
 package com.Phisher98
 
+import android.annotation.TargetApi
+import android.os.Build
 import com.Phisher98.StreamPlay.Companion.animepaheAPI
 import com.lagradost.cloudstream3.extractors.Filesim
 import com.lagradost.cloudstream3.extractors.GMPlayer
 import com.lagradost.cloudstream3.extractors.StreamSB
 import com.lagradost.cloudstream3.extractors.Voe
 import com.fasterxml.jackson.annotation.JsonProperty
+import com.google.gson.JsonParser
 import com.lagradost.api.Log
 import com.lagradost.cloudstream3.APIHolder.getCaptchaToken
 import com.lagradost.cloudstream3.SubtitleFile
+import com.lagradost.cloudstream3.USER_AGENT
 import com.lagradost.cloudstream3.amap
 import com.lagradost.cloudstream3.apmap
 import com.lagradost.cloudstream3.app
-import com.lagradost.cloudstream3.extractors.Chillx
 import com.lagradost.cloudstream3.extractors.DoodLaExtractor
 import com.lagradost.cloudstream3.extractors.Jeniusplay
 import com.lagradost.cloudstream3.extractors.VidhideExtractor
@@ -27,7 +30,14 @@ import com.lagradost.cloudstream3.utils.ExtractorLink
 import com.lagradost.cloudstream3.utils.M3u8Helper
 import okhttp3.FormBody
 import org.json.JSONObject
+import java.net.URI
 import java.util.Base64
+import javax.crypto.Cipher
+import javax.crypto.Mac
+import javax.crypto.SecretKeyFactory
+import javax.crypto.spec.IvParameterSpec
+import javax.crypto.spec.PBEKeySpec
+import javax.crypto.spec.SecretKeySpec
 
 open class Playm4u : ExtractorApi() {
     override val name = "Playm4u"
@@ -255,79 +265,80 @@ class VCloud : ExtractorApi() {
             val headerdetails =
                 """\.\d{3,4}p\.(.*)-[^-]*${'$'}""".toRegex().find(header)?.groupValues?.get(1)
                     ?.trim() ?: ""
-            Log.d("Phisher Vega",header)
-            div?.select("h2 a.btn")?.apmap {
-                val link = it.attr("href")
-                if (link.contains("technorozen.workers.dev")) {
-                    @Suppress("NAME_SHADOWING") val href = app.get(link).document.selectFirst("#vd")?.attr("href") ?: ""
-                    callback.invoke(
-                        ExtractorLink(
-                            "V-Cloud 10 Gbps $headerdetails",
-                            "V-Cloud 10 Gbps $size",
-                            href,
-                            "",
-                            getIndexQuality(header),
-                        )
-                    )
-                } else
-                    if (link.contains("pixeldra")) {
+            div?.select("h2 a.btn")?.filterNot {it.text().contains("Telegram", ignoreCase = true)}
+                ?.amap {
+                    val link = it.attr("href")
+                    Log.d("Phisher Vega",link)
+                    if (link.contains("technorozen.workers.dev")) {
+                        @Suppress("NAME_SHADOWING") val href = app.get(link).document.selectFirst("#vd")?.attr("href") ?: ""
                         callback.invoke(
                             ExtractorLink(
-                                "Pixeldrain $headerdetails",
-                                "Pixeldrain $size",
-                                link,
+                                "V-Cloud 10 Gbps $headerdetails",
+                                "V-Cloud 10 Gbps $size",
+                                href,
                                 "",
                                 getIndexQuality(header),
                             )
                         )
-                    } else if (link.contains("dl.php")) {
-                        val response = app.get(link, allowRedirects = false)
-                        val downloadLink =
-                            response.headers["location"].toString().split("link=").getOrNull(1)
-                                ?: link
-                        callback.invoke(
-                            ExtractorLink(
-                                "V-Cloud[Download] $headerdetails",
-                                "V-Cloud[Download] $size",
-                                downloadLink,
-                                "",
-                                getIndexQuality(header),
+                    } else
+                        if (link.contains("pixeldra")) {
+                            callback.invoke(
+                                ExtractorLink(
+                                    "Pixeldrain $headerdetails",
+                                    "Pixeldrain $size",
+                                    link,
+                                    "",
+                                    getIndexQuality(header),
+                                )
                             )
-                        )
-                    } else if (link.contains(".dev")) {
-                        callback.invoke(
-                            ExtractorLink(
-                                "V-Cloud $headerdetails",
-                                "V-Cloud $size",
-                                link,
-                                "",
-                                getIndexQuality(header),
+                        } else if (link.contains("dl.php")) {
+                            val response = app.get(link, allowRedirects = false)
+                            val downloadLink =
+                                response.headers["location"].toString().split("link=").getOrNull(1)
+                                    ?: link
+                            callback.invoke(
+                                ExtractorLink(
+                                    "V-Cloud[Download] $headerdetails",
+                                    "V-Cloud[Download] $size",
+                                    downloadLink,
+                                    "",
+                                    getIndexQuality(header),
+                                )
                             )
-                        )
-                    } else if (link.contains(".hubcdn.xyz")) {
-                        callback.invoke(
-                            ExtractorLink(
-                                "V-Cloud $headerdetails",
-                                "V-Cloud $size",
-                                link,
-                                "",
-                                getIndexQuality(header),
+                        } else if (link.contains(".dev")) {
+                            callback.invoke(
+                                ExtractorLink(
+                                    "V-Cloud $headerdetails",
+                                    "V-Cloud $size",
+                                    link,
+                                    "",
+                                    getIndexQuality(header),
+                                )
                             )
-                        )
-                    } else if (link.contains(".lol")) {
-                        callback.invoke(
-                            ExtractorLink(
-                                "V-Cloud [FSL] $headerdetails",
-                                "V-Cloud $size",
-                                link,
-                                "",
-                                getIndexQuality(header),
+                        } else if (link.contains(".hubcdn.xyz")) {
+                            callback.invoke(
+                                ExtractorLink(
+                                    "V-Cloud $headerdetails",
+                                    "V-Cloud $size",
+                                    link,
+                                    "",
+                                    getIndexQuality(header),
+                                )
                             )
-                        )
-                    } else {
-                        loadExtractor(link, subtitleCallback, callback)
-                    }
-            }
+                        } else if (link.contains(".lol")) {
+                            callback.invoke(
+                                ExtractorLink(
+                                    "V-Cloud [FSL] $headerdetails",
+                                    "V-Cloud $size",
+                                    link,
+                                    "",
+                                    getIndexQuality(header),
+                                )
+                            )
+                        } else {
+                            loadExtractor(link, subtitleCallback, callback)
+                        }
+                }
         }
     }
 
@@ -472,24 +483,6 @@ open class Ridoo : ExtractorApi() {
                 INFER_TYPE
             )
         )
-    }
-
-}
-
-open class Gdmirrorbot : ExtractorApi() {
-    override val name = "Gdmirrorbot"
-    override val mainUrl = "https://gdmirrorbot.nl"
-    override val requiresReferer = true
-
-    override suspend fun getUrl(
-        url: String,
-        referer: String?,
-        subtitleCallback: (SubtitleFile) -> Unit,
-        callback: (ExtractorLink) -> Unit
-    ) {
-        app.get(url, referer = referer).document.select("ul#videoLinks li").apmap {
-            loadExtractor(it.attr("data-link"), "$mainUrl/", subtitleCallback, callback)
-        }
     }
 
 }
@@ -676,6 +669,106 @@ class Comedyshow : Jeniusplay() {
     override val mainUrl = "https://comedyshow.to"
     override val name = "Comedyshow"
 }
+
+
+open class Chillx : ExtractorApi() {
+    override val name = "Chillx"
+    override val mainUrl = "https://chillx.top"
+    override val requiresReferer = true
+
+    override suspend fun getUrl(
+        url: String,
+        referer: String?,
+        subtitleCallback: (SubtitleFile) -> Unit,
+        callback: (ExtractorLink) -> Unit
+    ) {
+        val res = app.get(url).toString()
+        val encodedString =
+            Regex("Encrypted\\s*=\\s*'(.*?)';").find(res)?.groupValues?.get(1) ?:""
+        val decoded = decrypt(encodedString)
+        val m3u8 =Regex("file:\\s*\"(.*?)\"").find(decoded)?.groupValues?.get(1) ?:""
+        val header =
+            mapOf(
+                "accept" to "*/*",
+                "accept-language" to "en-US,en;q=0.5",
+                "Origin" to mainUrl,
+                "Accept-Encoding" to "gzip, deflate, br",
+                "Connection" to "keep-alive",
+                "Sec-Fetch-Dest" to "empty",
+                "Sec-Fetch-Mode" to "cors",
+                "Sec-Fetch-Site" to "cross-site",
+                "user-agent" to USER_AGENT,
+            )
+        callback.invoke(
+            ExtractorLink(
+                name,
+                name,
+                m3u8,
+                mainUrl,
+                Qualities.P1080.value,
+                INFER_TYPE,
+                headers = header
+            )
+        )
+
+        val subtitles = extractSrtSubtitles(decoded)
+
+        subtitles.forEachIndexed { _, (language, url) ->
+            subtitleCallback.invoke(
+                SubtitleFile(
+                    language,
+                    url
+                )
+            )
+        }
+    }
+
+    private fun extractSrtSubtitles(subtitle: String): List<Pair<String, String>> {
+        val regex = """\[([^]]+)](https?://[^\s,]+\.srt)""".toRegex()
+
+        return regex.findAll(subtitle).map { match ->
+            val (language, url) = match.destructured
+            language.trim() to url.trim()
+        }.toList()
+    }
+
+    @TargetApi(Build.VERSION_CODES.O)
+    fun decrypt(encrypted: String): String {
+        // Decode the Base64-encoded JSON string
+        val data = JSONObject(String(Base64.getDecoder().decode(encrypted)))
+
+        // Function to derive the key
+        fun deriveKey(password: String, salt: String): ByteArray {
+            val saltBytes = if (salt.contains("=")) Base64.getDecoder().decode(salt) else salt.toByteArray()
+            val passwordBytes = (password + "sB0mZOqlRTy8CVpL").toCharArray()
+            val spec = PBEKeySpec(passwordBytes, saltBytes, 1000, 64 * 8) // 64 bytes = 512 bits
+            val factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA512")
+            return factory.generateSecret(spec).encoded
+        }
+
+        // Derive the key
+        val key = deriveKey("NMhG08LLwixKRmgx", data.getString("salt"))
+
+        // Decode IV and ciphertext
+        val ivBytes = Base64.getDecoder().decode(data.getString("iv"))
+        val iv = IvParameterSpec(ivBytes)
+        val ciphertext = Base64.getDecoder().decode(data.getString("data"))
+
+        // Generate HMAC for integrity check (optional)
+        val mac = Mac.getInstance("HmacSHA256")
+        mac.init(SecretKeySpec(key, "HmacSHA256"))
+        val calculatedMac = mac.doFinal(ciphertext).joinToString("") { "%02x".format(it) }
+
+        // Decrypt the ciphertext using AES
+        val cipher = Cipher.getInstance("AES/CBC/PKCS5Padding")
+        cipher.init(Cipher.DECRYPT_MODE, SecretKeySpec(key.copyOf(32), "AES"), iv)
+        val decrypted = cipher.doFinal(ciphertext)
+
+        return String(decrypted, Charsets.UTF_8)
+    }
+
+}
+
 class Bestx : Chillx() {
     override val name = "Bestx"
     override val mainUrl = "https://bestx.stream"
@@ -1097,13 +1190,12 @@ open class HubCloud : ExtractorApi() {
         subtitleCallback: (SubtitleFile) -> Unit,
         callback: (ExtractorLink) -> Unit
     ) {
-        Log.d("Phisher url 1", url)
-        val url=url.replace(".ink",".tel")
+        val url=replaceHubclouddomain(url)
+        Log.d("Phisher real url", url)
         val href:String
-        if (url.contains("gamerxyt"))
+        if (url.contains("hubcloud.php"))
         {
             href=url
-            Log.d("Phisher Hub", href)
         }
         else {
             val doc = app.get(url).text
@@ -1150,6 +1242,16 @@ open class HubCloud : ExtractorApi() {
                             getIndexQuality(header),
                         )
                     )
+                } else if (link.contains("buzzheavier")) {
+                callback.invoke(
+                    ExtractorLink(
+                        "$source Buzzheavier",
+                        "$source Buzzheavier $size",
+                        "$link/download",
+                        "",
+                        getIndexQuality(header),
+                    )
+                )
                 } else if (link.contains(".dev")) {
                     callback.invoke(
                         ExtractorLink(
@@ -1513,7 +1615,7 @@ class Kwik : ExtractorApi() {
                 name,
                 m3u8,
                 "",
-                getQualityFromName(""),
+                getQualityFromName(referer),
                 INFER_TYPE
             )
         )
@@ -1535,6 +1637,52 @@ open class Embtaku : ExtractorApi() {
             if (href != null) {
                 loadCustomExtractor("Anichi [Embtaku]",href,"",subtitleCallback,callback)
             }
+        }
+    }
+}
+
+class GDMirrorbot : ExtractorApi() {
+    override var name = "GDMirrorbot"
+    override var mainUrl = "https://gdmirrorbot.nl"
+    override val requiresReferer = true
+    override suspend fun getUrl(
+        url: String,
+        referer: String?,
+        subtitleCallback: (SubtitleFile) -> Unit,
+        callback: (ExtractorLink) -> Unit
+    ) {
+        val host = getBaseUrl(app.get(url).url)
+        val embed = url.substringAfter("embed/")
+        val data = mapOf("sid" to embed)
+        val jsonString = app.post("$host/embedhelper.php", data = data).toString()
+        val jsonObject = JsonParser.parseString(jsonString).asJsonObject
+        val siteUrls = jsonObject.getAsJsonObject("siteUrls").asJsonObject
+        val mresult = jsonObject.getAsJsonObject("mresult").toString()
+        val regex = """"(\w+)":"([^"]+)"""".toRegex()
+        val mresultMap = regex.findAll(mresult).associate {
+            it.groupValues[1] to it.groupValues[2]
+        }
+
+        val matchingResults = mutableListOf<Pair<String, String>>()
+        siteUrls.keySet().forEach { key ->
+            if (mresultMap.containsKey(key)) { // Use regex-matched keys and values
+                val value1 = siteUrls.get(key).asString
+                val value2 = mresultMap[key].orEmpty()
+                matchingResults.add(Pair(value1, value2))
+            }
+        }
+
+        matchingResults.amap { (siteUrl, result) ->
+            val href = "$siteUrl$result"
+            android.util.Log.d("Phisher", "Generated Href: $href")
+            loadExtractor(href, subtitleCallback, callback)
+        }
+
+    }
+
+    fun getBaseUrl(url: String): String {
+        return URI(url).let {
+            "${it.scheme}://${it.host}"
         }
     }
 }
