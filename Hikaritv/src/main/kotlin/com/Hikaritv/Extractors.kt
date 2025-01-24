@@ -1,4 +1,4 @@
-package com.Anisaga
+package com.hikaritv
 
 
 import android.util.Log
@@ -10,6 +10,9 @@ import com.lagradost.cloudstream3.utils.ExtractorLink
 import com.lagradost.cloudstream3.utils.INFER_TYPE
 import com.lagradost.cloudstream3.utils.Qualities
 import android.util.Base64
+import com.lagradost.cloudstream3.extractors.Filesim
+import com.lagradost.cloudstream3.utils.ExtractorLinkType
+import com.lagradost.cloudstream3.utils.JsUnpacker
 import org.json.JSONObject
 import java.security.MessageDigest
 import java.util.zip.Inflater
@@ -19,9 +22,20 @@ import javax.crypto.spec.IvParameterSpec
 import javax.crypto.spec.PBEKeySpec
 import javax.crypto.spec.SecretKeySpec
 
-class AnisagaStream : Chillx() {
-    override val name = "Anisaga"
-    override val mainUrl = "https://plyrxcdn.site"
+class Ghbrisk : Filesim() {
+    override val name = "Streamwish"
+    override val mainUrl = "https://ghbrisk.com"
+}
+
+class Swishsrv : Filesim() {
+    override val name = "Streamwish"
+    override val mainUrl = "https://swishsrv.com"
+}
+
+
+class Boosterx : Chillx() {
+    override val name = "Boosterx"
+    override val mainUrl = "https://boosterx.stream"
 }
 
 // Why are so mad at us Cracking it
@@ -39,8 +53,9 @@ open class Chillx : ExtractorApi() {
         val res = app.get(url).toString()
         val encodedString =
             Regex("Encrypted\\s*=\\s*'(.*?)';").find(res)?.groupValues?.get(1) ?:""
-        Log.d("Phisher",encodedString)
+        Log.d("Phisher",encodedString.toString())
         val decoded = decodeEncryptedData(encodedString) ?:""
+        Log.d("Phisher",decoded.toString())
         val m3u8 = Regex("\"?file\"?:\\s*\"([^\"]+)").find(decoded)?.groupValues?.get(1)
             ?.trim()
             ?:""
@@ -138,6 +153,38 @@ open class Chillx : ExtractorApi() {
             (this shr 16 and 0xFF).toByte(),
             (this shr 8 and 0xFF).toByte(),
             (this and 0xFF).toByte()
+        )
+    }
+}
+
+class FilemoonV2 : ExtractorApi() {
+    override var name = "Filemoon"
+    override var mainUrl = "https://filemoon.to"
+    override val requiresReferer = true
+
+    override suspend fun getUrl(
+        url: String,
+        referer: String?,
+        subtitleCallback: (SubtitleFile) -> Unit,
+        callback: (ExtractorLink) -> Unit
+    ) {
+        val href=app.get(url).document.selectFirst("iframe")?.attr("src") ?:""
+        Log.d("Phisher",href)
+        val res= app.get(href, headers = mapOf("Accept-Language" to "en-US,en;q=0.5","sec-fetch-dest" to "iframe")).document.selectFirst("script:containsData(function(p,a,c,k,e,d))")?.data().toString()
+        val m3u8= JsUnpacker(res).unpack()?.let { unPacked ->
+            Regex("sources:\\[\\{file:\"(.*?)\"").find(unPacked)?.groupValues?.get(1)
+        }
+        Log.d("Phisher",m3u8.toString())
+
+        callback.invoke(
+            ExtractorLink(
+                this.name,
+                this.name,
+                m3u8 ?:"",
+                url,
+                Qualities.P1080.value,
+                type = ExtractorLinkType.M3U8,
+            )
         )
     }
 }
