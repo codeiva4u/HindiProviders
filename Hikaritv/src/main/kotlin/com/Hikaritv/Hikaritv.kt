@@ -2,6 +2,7 @@ package com.hikaritv
 
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
+import com.lagradost.api.Log
 import com.lagradost.cloudstream3.*
 import com.lagradost.cloudstream3.LoadResponse.Companion.addDuration
 import com.lagradost.cloudstream3.LoadResponse.Companion.addMalId
@@ -9,7 +10,11 @@ import com.lagradost.cloudstream3.LoadResponse.Companion.addTrailer
 import com.lagradost.cloudstream3.utils.*
 import com.lagradost.cloudstream3.utils.AppUtils.toJson
 import com.lagradost.cloudstream3.utils.AppUtils.tryParseJson
+import com.lagradost.cloudstream3.utils.Coroutines.main
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import org.jsoup.Jsoup
+import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
 
 class Hikaritv : MainAPI() {
@@ -24,7 +29,7 @@ class Hikaritv : MainAPI() {
     )
 
     override val mainPage = mainPageOf(
-        "ajax/getfilter?sort=recently_updated&page=" to "Recently Updated",
+        "${mainUrl}/recently-updated" to "Latest Episode",
         "ajax/getfilter?type=2&sort=default&page=" to "Movies",
         "ajax/getfilter?stats=2&sort=default&page=" to "Finished Airing",
         "ajax/getfilter?sort=score&page=" to "Most Popular",
@@ -34,8 +39,15 @@ class Hikaritv : MainAPI() {
         page: Int,
         request: MainPageRequest
     ): HomePageResponse {
-        val res = app.get("$mainUrl/${request.data}$page").parsedSafe<HomePage>()?.html ?:""
-        val document= Jsoup.parse(res)
+        val document:Document
+        if (request.data.startsWith(mainUrl))
+        {
+            document= app.get(request.data).document
+        }
+        else {
+            val res = app.get("$mainUrl/${request.data}$page").parsedSafe<HomePage>()?.html ?: ""
+            document = Jsoup.parse(res)
+        }
         val home =
             document.select("div.flw-item").mapNotNull {
                 it.toSearchResult()
@@ -101,7 +113,7 @@ class Hikaritv : MainAPI() {
         val episodeListHtml = app.get("$mainUrl/ajax/episodelist/$animeId").parsedSafe<Load>()?.html.orEmpty()
         val episodeDocument = Jsoup.parse(episodeListHtml)
 
-        val tvType = if (episodeDocument.select("#episodes-load a, #episodes-page-1 a").size > 1) {
+        val tvType = if (episodeDocument.select("a[class~=ep-item]").size > 1) {
             TvType.TvSeries
         } else {
             TvType.Movie
@@ -111,46 +123,62 @@ class Hikaritv : MainAPI() {
             val subbedEpisodes = mutableListOf<Episode>()
             val dubbedEpisodes = mutableListOf<Episode>()
 
-            episodeDocument.select("#episodes-load a, #episodes-page-1 a").amap { episodeElement ->
-                val SubUrls=mutableListOf<String>()
-                val DubUrls=mutableListOf<String>()
-                val episodeNumber = episodeElement.attr("onclick").substringAfter("$animeId,").substringBefore(")").toIntOrNull()
+            // Create a mutex for thread-safe access
+            val mutex = Mutex()
+
+            episodeDocument.select("a[class~=ep-item]").amap { episodeElement ->
+                val SubUrls = mutableListOf<String>()
+                val DubUrls = mutableListOf<String>()
+                val episodeNumber = episodeElement.selectFirst(".ssli-order")?.text()?.toIntOrNull()
+                    ?: episodeElement.attr("data-number").toIntOrNull()
+                    ?: episodeElement.selectFirst(".ssli-order")!!.text().toInt()
+
                 val episodeName = episodeElement.selectFirst("div.ep-name")?.text()?.substringAfter(".")
 
                 val embedResponseHtml = app.get("$mainUrl/ajax/embedserver/$animeId/$episodeNumber").parsedSafe<TypeRes>()?.html.orEmpty()
                 val embedDocument = Jsoup.parse(embedResponseHtml)
+
+                // For subbed URLs
                 embedDocument.select(".servers-sub .server-item a").forEach { subElement ->
                     val embedId = subElement.attr("id").substringAfter("embed-")
                     if (embedId.toIntOrNull() != null) {
-                        val jsonResponse = app.get("$mainUrl/ajax/embed/$animeId/$episodeNumber/$embedId").toString()
-                        val href = extractIframeSrc(jsonResponse) ?: ""
-                        if (href.isNotEmpty()) {
-                            SubUrls.add(href)
+                        val href = "$mainUrl/ajax/embed/$animeId/$episodeNumber/$embedId"
+                        SubUrls.add(href) // Add the constructed URL directly
+                    }
+                }
+
+                if (SubUrls.isEmpty()) {
+                    embedDocument.select("#items-category-multi-0 .server-item a").forEach { subElement ->
+                        val embedId = subElement.attr("id").substringAfter("embed-")
+                        if (embedId.toIntOrNull() != null) {
+                            val href = "$mainUrl/ajax/embed/$animeId/$episodeNumber/$embedId"
+                            SubUrls.add(href) // Add the constructed URL directly
                         }
                     }
                 }
 
-                if (SubUrls.isNotEmpty()) {
-                    subbedEpisodes.add(Episode(LoadSeriesUrls("sub", SubUrls.toList()).toJson(), episodeName, 1, episodeNumber))
-                    SubUrls.clear()
+                mutex.withLock {
+                    if (subbedEpisodes.none { it.episode == episodeNumber && it.data == SubUrls.joinToString(",") }) {
+                        subbedEpisodes.add(Episode(LoadSeriesUrls("sub", SubUrls).toJson(), episodeName, 1, episodeNumber))
+                    }
                 }
 
+                // For dubbed URLs
                 embedDocument.select(".servers-dub .server-item a").forEach { dubElement ->
                     val embedId = dubElement.attr("id").substringAfter("embed-")
                     if (embedId.toIntOrNull() != null) {
-                        val jsonResponse = app.get("$mainUrl/ajax/embed/$animeId/$episodeNumber/$embedId").toString()
-                        val href = extractIframeSrc(jsonResponse) ?: ""
-                        if (href.isNotEmpty()) {
-                            DubUrls.add(href)
-                        }
+                        val href = "$mainUrl/ajax/embed/$animeId/$episodeNumber/$embedId"
+                        DubUrls.add(href) // Add the constructed URL directly
                     }
                 }
 
-                if (DubUrls.isNotEmpty()) {
-                    dubbedEpisodes.add(Episode(LoadSeriesUrls("dub", DubUrls.toList()).toJson(), episodeName, 1, episodeNumber))
-                    DubUrls.clear()
+                mutex.withLock {
+                    if (dubbedEpisodes.none { it.episode == episodeNumber && it.data == DubUrls.joinToString(",") }) {
+                        dubbedEpisodes.add(Episode(LoadSeriesUrls("dub", DubUrls).toJson(), episodeName, 1, episodeNumber))
+                    }
                 }
             }
+
             return newAnimeLoadResponse(animeTitle, url, TvType.TvSeries) {
                 this.posterUrl = posterUrl
                 this.year = releaseYear
@@ -186,11 +214,13 @@ class Hikaritv : MainAPI() {
         {
             val videoList: List<LoadUrls>? = tryParseJson(data)
             videoList?.forEach { video ->
-                val iframe = video.href
+                val url = video.href
+                val jsonResponse = app.get(url).toString()
+                val href = extractIframeSrc(jsonResponse) ?: ""
                 val type = video.type
                 loadCustomTagExtractor(
                     "$name ${type.uppercase()}",
-                    iframe,
+                    href,
                     "",
                     subtitleCallback,
                     callback
@@ -206,9 +236,11 @@ class Hikaritv : MainAPI() {
             }
             video?.href?.forEach { url ->
                 val type = video.type
+                val jsonResponse = app.get(url).toString()
+                val href = extractIframeSrc(jsonResponse) ?: ""
                 loadCustomTagExtractor(
                     "$name ${type.uppercase()}",
-                    url,
+                    href,
                     "",
                     subtitleCallback,
                     callback
@@ -237,42 +269,35 @@ class Hikaritv : MainAPI() {
         }
     }
 
-
-
-    private val gson = Gson()
-    private suspend fun extractEmbedIdsAndEpisodesToJson(id: Int?): String {
-        val typeres = app.get("$mainUrl/ajax/embedserver/$id/1").parsedSafe<TypeRes>()?.html ?: ""
-        val allEmbedUrls = mutableListOf<LoadUrls>()
-        val typedoc = Jsoup.parse(typeres)
-
-        val subElements = typedoc.select(".servers-sub .server-item a")
-        subElements.forEach { type ->
-            val embedId = type.attr("id").substringAfter("embed-")
-            if (embedId.toIntOrNull() != null) {
-                val jsonResponse = app.get("$mainUrl/ajax/embed/$id/1/$embedId").toString()
-                val href = extractIframeSrc(jsonResponse) ?: ""
-                allEmbedUrls.add(LoadUrls(type = "sub", href = href))
-            }
-        }
-
-        val dubElements = typedoc.select(".servers-dub .server-item a")
-        dubElements.forEach { type ->
-            val embedId = type.attr("id").substringAfter("embed-")
-            if (embedId.toIntOrNull() != null) {
-                val jsonResponse = app.get("$mainUrl/ajax/embed/$id/1/$embedId").toString()
-                val href = extractIframeSrc(jsonResponse) ?: ""
-                allEmbedUrls.add(LoadUrls(type = "dub", href = href))
-            }
-        }
-
-        return gson.toJson(allEmbedUrls)
-    }
-
     private fun extractIframeSrc(jsonResponse: String): String? {
         val type = object : TypeToken<List<String>>() {}.type
         val iframeHtmlList: List<String> = gson.fromJson(jsonResponse, type)
         val iframeHtml = iframeHtmlList.firstOrNull() ?: return null
         return Jsoup.parse(iframeHtml).selectFirst("iframe")?.attr("src")
+    }
+
+
+    private val gson = Gson()
+    private suspend fun extractEmbedUrls(id: Int?, serverClass: String): List<LoadUrls> {
+        val typeres = app.get("$mainUrl/ajax/embedserver/$id/1").parsedSafe<TypeRes>()?.html ?: ""
+        val typedoc = Jsoup.parse(typeres)
+        val embedUrls = mutableListOf<LoadUrls>()
+
+        typedoc.select(serverClass).forEach { type ->
+            val embedId = type.attr("id").substringAfter("embed-")
+            if (embedId.toIntOrNull() != null) {
+                val href = "$mainUrl/ajax/embed/$id/1/$embedId" // Construct the URL
+                embedUrls.add(LoadUrls(type = if (serverClass.contains("sub")) "sub" else "dub", href = href))
+            }
+        }
+        return embedUrls
+    }
+
+    private suspend fun extractEmbedIdsAndEpisodesToJson(id: Int?): String {
+        val subUrls = extractEmbedUrls(id, ".servers-sub .server-item a")
+        val dubUrls = extractEmbedUrls(id, ".servers-dub .server-item a")
+        val allEmbedUrls = subUrls + dubUrls
+        return gson.toJson(allEmbedUrls)
     }
 
 
