@@ -1362,12 +1362,207 @@ data class RiveStreamSourceData(
     val format: String,
 )
 
+data class RivestreamEmbedResponse(
+    val data: RivestreamEmbedData,
+)
+
+data class RivestreamEmbedData(
+    val sources: List<RivestreamEmbedSource>,
+)
+
+data class RivestreamEmbedSource(
+    val host: String,
+    @JsonProperty("host_id")
+    val hostId: Long,
+    val link: String,
+)
+
 data class VidSrcVipSource(
     val language: String,
     @JsonProperty("m3u8_stream")
     val m3u8Stream: String,
 )
 
+data class ConsumetDetails(
+    @JsonProperty("episodes") val episodes: ArrayList<ConsumetEpisodes>? = arrayListOf(),
+)
 
+data class ConsumetResults(
+    @JsonProperty("id") val id: String? = null,
+    @JsonProperty("title") val title: String? = null,
+    @JsonProperty("releaseDate") val releaseDate: String? = null,
+    @JsonProperty("type") val type: String? = null,
+)
+
+data class ConsumetSearchResponse(
+    @JsonProperty("results") val results: ArrayList<ConsumetResults>? = arrayListOf(),
+)
+
+data class ConsumetEpisodes(
+    @JsonProperty("id") val id: String? = null,
+    @JsonProperty("type") val type: String? = null,
+    @JsonProperty("title") val title: String? = null,
+    @JsonProperty("number") val number: Int? = null,
+    @JsonProperty("season") val season: Int? = null,
+)
+
+data class ConsumetSourcesResponse(
+    @JsonProperty("headers") val headers: ConsumetHeaders? = null,
+    @JsonProperty("sources") val sources: ArrayList<ConsumetSources1>? = arrayListOf(),
+    @JsonProperty("subtitles") val subtitles: ArrayList<ConsumetSubtitles>? = arrayListOf(),
+)
+
+
+data class ConsumetHeaders(
+    @JsonProperty("Referer") val referer: String? = null,
+)
+
+data class ConsumetSubtitles(
+    @JsonProperty("url") val url: String? = null,
+    @JsonProperty("lang") val lang: String? = null,
+)
+
+data class ConsumetSources1(
+    @JsonProperty("url") val url: String? = null,
+    @JsonProperty("quality") val quality: String? = null,
+    @JsonProperty("isM3U8") val isM3U8: Boolean? = null,
+)
+
+
+typealias ConsumetServers = List<ConsumetServers2>;
+data class RgshowsFlickyStream(
+    val stream: List<RgshowFlickySourceResponse>,
+)
+
+data class RgshowsStream(
+    val stream: RgshowSourceResponse,
+)
+
+data class RgshowFlickySourceResponse(
+    val url: String,
+    val quality: String,
+)
+
+data class RgshowSourceResponse(
+    val url: String,
+)
+
+data class RgshowsHindi(
+    val success: Boolean,
+    val data: RgshowsHindiData,
+)
+
+data class RgshowsHindiData(
+    val playlist: List<RgshowsHindiPlaylist>,
+    val key: String,
+)
+
+data class RgshowsHindiPlaylist(
+    val title: String,
+    val id: String,
+    val file: String,
+)
+
+data class RgshowsHindiResponse(
+    val success: Boolean,
+    val data: RgshowsHindiResponseData,
+)
+
+data class RgshowsHindiResponseData(
+    val link: String,
+)
+
+
+data class KisskhKey(
+    val id: String,
+    val version: String,
+    val key: String,
+)
+
+
+data class ConsumetServers2(
+    val name: String,
+    val url: String,
+)
+
+data class FlixHQIframe(
+    val type: String,
+    val link: String,
+)
+
+
+data class FlixHQIframeiframe(
+    val sources: List<Sourceiframe>,
+    val tracks: List<Trackiframe>,
+)
+
+data class Sourceiframe(
+    val file: String,
+    val type: String,
+)
+
+data class Trackiframe(
+    val file: String,
+    val label: String,
+)
+
+data class SeasonDetail
+    (
+    val quality:String?,
+    val episodeLinkMap:MutableMap<String,MutableList<String>>?,
+    val season:String?,
+)
+
+
+//SuperStream
+
+data class ER(
+    @JsonProperty("code") val code: Int? = null,
+    @JsonProperty("msg") val msg: String? = null,
+    @JsonProperty("server_runtime") val serverRuntime: Double? = null,
+    @JsonProperty("server_name") val serverName: String? = null,
+    @JsonProperty("data") val data: DData? = null,
+)
+
+data class DData(
+    @JsonProperty("link") val link: String? = null,
+    @JsonProperty("file_list") val fileList: List<FileList>? = null,
+)
+
+data class FileList(
+    @JsonProperty("fid") val fid: Long? = null,
+    @JsonProperty("file_name") val fileName: String? = null,
+    @JsonProperty("oss_fid") val ossFid: Long? = null,
+)
+
+data class ExternalResponse(
+    @JsonProperty("code") val code: Int? = null,
+    @JsonProperty("msg") val msg: String? = null,
+    @JsonProperty("server_runtime") val serverRuntime: Double? = null,
+    @JsonProperty("server_name") val serverName: String? = null,
+    @JsonProperty("data") val data: Data? = null,
+) {
+    data class Data(
+        @JsonProperty("link") val link: String? = null,
+        @JsonProperty("file_list") val fileList: List<FileList>? = null,
+    ) {
+        data class FileList(
+            @JsonProperty("fid") val fid: Long? = null,
+            @JsonProperty("file_name") val fileName: String? = null,
+            @JsonProperty("oss_fid") val ossFid: Long? = null,
+        )
+    }
+}
+
+data class ExternalSourcesWrapper(
+    @JsonProperty("sources") val sources: List<ExternalSources>? = null
+)
+
+data class ExternalSources(
+    @JsonProperty("source") val source: String? = null,
+    @JsonProperty("file") val file: String? = null,
+    @JsonProperty("label") val label: String? = null,
+    @JsonProperty("type") val type: String? = null,
+)
 
 

@@ -1,5 +1,5 @@
 // use an integer for version numbers
-version =26
+version =29
 
 cloudstream {
     // All of these properties are optional, you can safely remove them
@@ -26,4 +26,6 @@ cloudstream {
         "Anime",
     )
     iconUrl = "https://raw.githubusercontent.com/LikDev-256/likdev256-tamil-providers/master/MultiMoviesProvider/icon.png"
+
+    isCrossPlatform = true
 }
