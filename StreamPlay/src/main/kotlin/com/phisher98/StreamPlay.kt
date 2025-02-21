@@ -1,5 +1,6 @@
 package com.Phisher98
 
+import android.content.SharedPreferences
 import com.Phisher98.StreamPlayExtractor.invoke2embed
 import com.Phisher98.StreamPlayExtractor.invokeAllMovieland
 import com.Phisher98.StreamPlayExtractor.invokeAnimes
@@ -52,6 +53,7 @@ import com.Phisher98.StreamPlayExtractor.invokeTom
 import com.Phisher98.StreamPlayExtractor.invokeTopMovies
 import com.Phisher98.StreamPlayExtractor.invokeTvMovies
 import com.Phisher98.StreamPlayExtractor.invokeUhdmovies
+import com.Phisher98.StreamPlayExtractor.invokeUira
 import com.Phisher98.StreamPlayExtractor.invokeVegamovies
 import com.Phisher98.StreamPlayExtractor.invokeVidSrcViP
 import com.Phisher98.StreamPlayExtractor.invokeVidbinge
@@ -66,7 +68,6 @@ import com.Phisher98.StreamPlayExtractor.invokeazseries
 import com.Phisher98.StreamPlayExtractor.invokecatflix
 import com.Phisher98.StreamPlayExtractor.invokemovies4u
 import com.fasterxml.jackson.annotation.JsonProperty
-import com.lagradost.api.Log
 import com.lagradost.cloudstream3.Actor
 import com.lagradost.cloudstream3.ActorData
 import com.lagradost.cloudstream3.DubStatus
@@ -100,7 +101,7 @@ import com.lagradost.cloudstream3.utils.AppUtils.toJson
 import com.lagradost.cloudstream3.utils.ExtractorLink
 import kotlin.math.roundToInt
 
-open class StreamPlay : TmdbProvider() {
+open class StreamPlay(val sharedPref: SharedPreferences? = null) : TmdbProvider() {
     override var name = "StreamPlay"
     override val hasMainPage = true
     override val instantLinkLoading = true
@@ -113,6 +114,9 @@ open class StreamPlay : TmdbProvider() {
         TvType.Cartoon,
     )
 
+    // token is the name of the string "variable" saved in the preferences.
+    // null is what it returns if there's no token saved
+    val token = sharedPref?.getString("token", null)
     val wpRedisInterceptor by lazy { CloudflareKiller() }
 
     /** AUTHOR : hexated & Code */
@@ -205,6 +209,8 @@ open class StreamPlay : TmdbProvider() {
         const val HindMoviezApi= "https://hindmoviez.ink"
         const val thrirdAPI=BuildConfig.SUPERSTREAM_THIRD_API
         const val fourthAPI=BuildConfig.SUPERSTREAM_FOURTH_API
+        const val UiraApi= "https://xj4h5qkz7v2mlr9s.uira.live"
+        const val KickassAPI="https://kaa.mx"
         fun getType(t: String?): TvType {
             return when (t) {
                 "movie" -> TvType.Movie
@@ -286,7 +292,7 @@ open class StreamPlay : TmdbProvider() {
                 media.toSearchResponse()
             }
     }
-
+// do we need to put token each time ? No
     override suspend fun load(url: String): LoadResponse? {
         val data = parseJson<Data>(url)
         val type = getType(data.type)
@@ -453,7 +459,7 @@ open class StreamPlay : TmdbProvider() {
             }
         }
     }
-
+// you opened streamplay lite //yes but it inheri this Stremplay
     override suspend fun loadLinks(
         data: String,
         isCasting: Boolean,
@@ -1042,6 +1048,15 @@ open class StreamPlay : TmdbProvider() {
             },
             {
                 invokeSuperstream(
+                    token,
+                    res.imdbId,
+                    res.season,
+                    res.episode,
+                    callback
+                )
+            },
+            {
+                invokeUira(
                     res.imdbId,
                     res.season,
                     res.episode,

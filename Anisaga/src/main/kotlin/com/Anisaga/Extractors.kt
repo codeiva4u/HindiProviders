@@ -6,16 +6,16 @@ import com.lagradost.cloudstream3.utils.ExtractorApi
 import com.lagradost.cloudstream3.utils.ExtractorLink
 import com.lagradost.cloudstream3.utils.INFER_TYPE
 import com.lagradost.cloudstream3.utils.Qualities
-import com.lagradost.api.Log
 import com.lagradost.cloudstream3.USER_AGENT
-import com.lagradost.cloudstream3.base64DecodeArray
+import com.lagradost.cloudstream3.base64Decode
 
 class AnisagaStream : Chillx() {
     override val name = "Anisaga"
     override val mainUrl = "https://plyrxcdn.site"
 }
 
-// Why are so mad at us Cracking it
+// Are you guys decreasing security?
+// Its now more easy than previous one
 open class Chillx : ExtractorApi() {
     override val name = "Chillx"
     override val mainUrl = "https://chillx.top"
@@ -28,12 +28,11 @@ open class Chillx : ExtractorApi() {
         callback: (ExtractorLink) -> Unit
     ) {
         val headers = mapOf(
+            "priority" to "u=0, i",
             "Accept" to "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
             "Accept-Language" to "en-US,en;q=0.9",
         )
-
         try {
-            // Fetch the raw response from the URL
             val res = app.get(url,referer=mainUrl,headers=headers).toString()
 
             val encodedString = Regex("""(?:const|let|var)\s+\w+\s*=\s*'(.*?)'""").find(res)?.groupValues?.get(1) ?: ""
@@ -42,7 +41,8 @@ open class Chillx : ExtractorApi() {
             }
 
             // Decrypt the encoded string
-            val password = "CbrP~To{lEc1i$,+"
+            val key="MyV7RUVHaHJnb1dvfV5Seg=="
+            val password = base64Decode(key)
             val decryptedData = rc4Decrypt(password, hexToBytes(encodedString))
             // Extract the m3u8 URL from decrypted data
             val m3u8 = Regex("\"?file\"?:\\s*\"([^\"]+)").find(decryptedData)?.groupValues?.get(1)?.trim() ?: ""
